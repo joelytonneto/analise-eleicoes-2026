@@ -1,80 +1,63 @@
-# 🗳️ DivulgaBR 2026 - Painel Analítico e Auditoria das Eleições
+# Eleições 2026 · Auditoria por seção
 
-Sistema de alta fidelidade para auditoria, exploração cartográfica e inteligência eleitoral das **Eleições Gerais**, permitindo navegação territorial contínua com **drill-down em múltiplos níveis**: desde a visão macro nacional até o nível micro da **Seção Eleitoral (Boletim de Urna - BU)** com validação direta no TSE.
+Painel das Eleições Gerais de 2026 (1º turno, 04/10/2026) que permite encontrar **qualquer urna do Brasil e do exterior**, ver os votos de cada cargo e **conferir ao vivo** os números com o boletim de urna (BU) original publicado pelo TSE.
 
----
+Publicado em: https://joelytonneto.github.io/analise-eleicoes-2026/
 
-## 🎯 Destaques e Funcionalidades
+## Princípio: nenhum número é inventado
 
-### 1. Design Institucional & Modos White e Dark (UI/UX Pro Max)
-* **Modo Claro (White Mode) & Modo Escuro (Dark Mode):** Alternância instantânea no cabeçalho com persistência em `localStorage`.
-* **Estética de Gov-Tech / Auditoria Cívica:** Tipografia de alto contraste, alinhamento tabular (`font-mono tabular-nums`), eliminação de poluição visual e layout 100% responsivo e anti-wrap.
-* **Espelho do Boletim de Urna (BU):** Renderização fiel ao formato térmico oficial da Justiça Eleitoral, com cabeçalho de autenticação, chaves de segurança e conferência de votos.
+Todos os dados vêm de arquivos oficiais do Tribunal Superior Eleitoral:
 
-### 2. Validação e Auditoria Direta no TSE
-* **Conexão Oficial com o TSE:** Cada seção possui link direto que abre a urna no portal oficial do Tribunal Superior Eleitoral (`resultados.tse.jus.br`) e o arquivo JSON bruto de totalização.
-* **BUs Autênticos:** Totalização com números 100% idênticos aos divulgados pela Justiça Eleitoral para seções reais (ex: Seção 0393 e 0396 da 78ª Zona Eleitoral em Itaitinga-CE).
+| Fonte | Uso |
+|---|---|
+| `eleitorado_local_votacao_2026.zip` (Dados Abertos TSE) | cadastro de todas as seções, locais de votação, endereços, coordenadas, seções agregadas |
+| `detalhe_votacao_secao_2026.zip` | aptos, comparecimento, abstenção, brancos, nulos, legenda, modelo da urna por seção e cargo |
+| `votacao_secao_2026_BR.zip` e `votacao_secao_2026_<UF>.zip` | votos de cada candidato em cada seção |
+| `consulta_cand_2026.zip` | nomes, partidos e situação dos candidatos |
+| JSON de totalização (`resultados.tse.jus.br/oficial/ele2026/...-u.json`) | situação de cada candidatura (válido, anulado sub judice) e conferência dos totais |
+| Arquivos de urna (`resultados.tse.jus.br/oficial/ele2026/arquivo-urna/3220/...-bu.dat`) | conferência ao vivo de cada seção, direto no navegador |
 
-### 3. Navegação Cartográfica Multi-Nível
-* **Nível 1 - Brasil (Nacional):** Mapa interativo com as 27 UFs com basemaps Light Gray, Dark Canvas, OpenStreetMap e Satélite.
-* **Nível 2 - Estado (UF):** Seleção de municípios com liderança partidária e total de urnas.
-* **Nível 3 - Município (Cidades):** Filtro por **Zona Eleitoral** oficial (ex: as 17 zonas de Fortaleza) e busca por escolas/colégios de votação.
-* **Nível 4 - Seção Eleitoral:** Acesso individual a cada urna com abertura do espelho do BU.
+O SHA-256 de cada arquivo usado fica registrado em `public/data/2026/t1/meta.json` e na página **Auditoria**.
 
-### 4. Busca Universal Rápida (`Ctrl + K`)
-* Reconhecimento inteligente de sintaxe:
-  * Nome do município ou UF (ex: `Itaitinga`, `SP`, `Fortaleza`).
-  * Zona e seção eleitoral (ex: `Zona 078`, `Seção 0393`, `0393`).
+## Verificações
 
----
+`scripts/data/validate.mjs` confere a base gerada contra três referências independentes:
 
-## 🚀 Como Publicar no GitHub (Passo a Passo)
+1. **Consistência aritmética** de todas as seções e cargos (comparecimento + abstenção = aptos; nominais + legenda + brancos + nulos = comparecimento; soma por candidato = nominais).
+2. **Totalização oficial** do TSE para o Brasil, todas as UFs e **todos os municípios** (Presidente, Governador, Senador) e para os deputados por UF.
+3. **Boletins de urna originais**: amostra aleatória estratificada de BUs baixados e decodificados (ASN.1) — comparação de todos os números de todos os cargos.
 
-Para disponibilizar esta aplicação como um site público acessível de qualquer lugar na web através do **GitHub Pages**:
+O resultado fica em `public/data/2026/t1/validacao.json` e é exibido no site. Na página de cada seção, o navegador baixa o BU daquela urna no TSE e compara número a número com a base.
 
-### Passo 1: Inicializar o Repositório Git Localmente
-No terminal do projeto, execute:
+## Funcionalidades
+
+- **Busca universal** (`Ctrl+K`): “Itaitinga 78 393”, “Fortaleza zona 114”, “SP”, código TSE do município.
+- **Localizar urna**: seleção guiada UF → município → zona → seção.
+- **Navegação** Brasil → UF → município → zona / local de votação → seção, para Presidente, Governador, Senador e Deputados.
+- **Mapas** coropléticos por UF e município (malhas do IBGE) e mapa de pontos dos locais de votação, com métrica selecionável.
+- **Distribuições por seção**: histogramas, dispersão entre métricas e lista de seções estatisticamente atípicas.
+- **Comparar**: até 6 unidades de qualquer nível (seções, locais, zonas, municípios, UFs) lado a lado.
+- **Painel personalizado**: escolha escopo, nível, cargo, filtros e blocos (indicadores, resultado, ranking, histograma, dispersão, mapa, tabela); o painel fica no link e pode ser salvo.
+- **Exportação CSV** de todas as tabelas.
+
+## Regenerar a base
+
 ```bash
-git init
-git add .
-git commit -m "feat: release painel eleicoes 2026 com modo light/dark e deploy github pages"
+# 1. baixe os zips listados acima para uma pasta (ex.: ./raw, com os arquivos por UF em ./raw/uf)
+node scripts/data/situacao-candidatos.mjs ./raw
+node --max-old-space-size=12000 scripts/data/build.mjs ./raw public/data/2026/t1
+node scripts/data/geo.mjs public/data/geo
+node scripts/data/validate.mjs public/data/2026/t1 --bu=1500
 ```
 
-### Passo 2: Criar o Repositório no GitHub
-1. Acesse [github.com/new](https://github.com/new).
-2. Dê um nome ao seu repositório (exemplo: `analise-eleicoes-2026`).
-3. Deixe o repositório como **Public** (Público).
-4. **Não** marque para inicializar com README ou .gitignore (eles já existem no projeto).
-5. Clique em **Create repository**.
+Requer Node 16+ e o utilitário `unzip`.
 
-### Passo 3: Enviar o Código para o GitHub
-Copie os comandos exibidos no GitHub e rode no terminal:
-```bash
-git branch -M main
-git remote add origin https://github.com/SEU_USUARIO/analise-eleicoes-2026.git
-git push -u origin main
-```
-*(Substitua `SEU_USUARIO` pelo seu usuário do GitHub)*.
-
-### Passo 4: Ativar o GitHub Pages com GitHub Actions
-1. No seu repositório no GitHub, clique na aba **Settings** (Configurações).
-2. No menu lateral esquerdo, clique em **Pages**.
-3. Em **Build and deployment** > **Source**, altere de *"Deploy from a branch"* para **"GitHub Actions"**.
-4. Pronto! O workflow automático que já configuramos em `.github/workflows/deploy.yml` será acionado.
-5. Em 1 a 2 minutos, seu link público estará no ar no formato:
-   **`https://SEU_USUARIO.github.io/analise-eleicoes-2026/`**
-
----
-
-## 💻 Desenvolvimento Local
+## Desenvolvimento
 
 ```bash
-# Instalar dependências
 npm install
-
-# Rodar servidor local (Vite)
-npm run dev
-
-# Compilar para produção
+npm run dev      # http://localhost:3000
 npm run build
 ```
+
+O deploy no GitHub Pages é automático a cada push na branch `main` (`.github/workflows/deploy.yml`).

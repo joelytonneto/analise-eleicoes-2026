@@ -27,4 +27,4 @@ dist-ssr
 Thumbs.db
 
 # Scratch and raw files
-scratch/*.dat
+scratch/

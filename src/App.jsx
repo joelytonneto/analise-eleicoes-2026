@@ -1,318 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import Breadcrumb from './components/Breadcrumb';
-import KpiCards from './components/KpiCards';
-import BrazilMap from './components/BrazilMap';
-import CandidatesChart from './components/CandidatesChart';
-import DrillDownPanel from './components/DrillDownPanel';
-import SectionModal from './components/SectionModal';
-import SearchModal from './components/SearchModal';
-import TseImportModal from './components/TseImportModal';
-import { BRAZIL_STATES } from './data/brazilStates';
-import { getLocaisVotacao, getBoletimDeUrna } from './data/electoralEngine';
-import allMunicipalities from './data/allMunicipalities.json';
+import React, { useEffect, useState } from 'react';
+import { Sun, Moon, ShieldCheck, LayoutDashboard, GitCompare, Map as MapIcon, Crosshair } from 'lucide-react';
+import SearchBox from './components/SearchBox';
+import { useRoute, rotas } from './lib/router';
+import BrasilPage from './pages/BrasilPage';
+import UfPage from './pages/UfPage';
+import MunicipioPage from './pages/MunicipioPage';
+import SecaoPage from './pages/SecaoPage';
+import CompararPage from './pages/CompararPage';
+import PainelPage from './pages/PainelPage';
+import AuditoriaPage from './pages/AuditoriaPage';
+import LocalizarPage from './pages/LocalizarPage';
+import { ComparacaoProvider, BandejaComparacao } from './components/Comparacao';
 
-export default function App() {
-  const [cargoAtual, setCargoAtual] = useState('PRESIDENTE');
-  const [turnoAtual, setTurnoAtual] = useState(1);
-
-  // Tema Claro / Escuro (com persistência em localStorage)
+function useTheme() {
   const [theme, setTheme] = useState(() => {
     try {
-      const saved = localStorage.getItem('theme');
-      if (saved) return saved;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    } catch (e) {
-      return 'dark';
-    }
+      return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    } catch { return 'light'; }
   });
-
   useEffect(() => {
-    try {
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-        document.documentElement.classList.remove('light');
-      } else {
-        document.documentElement.classList.remove('dark');
-        document.documentElement.classList.add('light');
-      }
-      localStorage.setItem('theme', theme);
-    } catch (e) {}
+    try { localStorage.setItem('theme', theme); } catch { /* sem armazenamento */ }
   }, [theme]);
+  // a classe é aplicada antes do novo render, para mapas e cores dos gráficos lerem o tema certo
+  const trocar = t => { document.documentElement.classList.toggle('dark', t === 'dark'); setTheme(t); };
+  if (typeof document !== 'undefined') document.documentElement.classList.toggle('dark', theme === 'dark');
+  return [theme, trocar];
+}
 
-  const toggleTheme = () => {
-    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
-  };
+function NavLink({ to, ativo, icon: I, children }) {
+  return (
+    <a href={to} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium whitespace-nowrap" style={ativo ? { background: 'var(--surface-2)', color: 'var(--ink)' } : { color: 'var(--ink-2)' }}>
+      <I className="w-4 h-4" /> {children}
+    </a>
+  );
+}
 
-  // Estados de Navegação Hierárquica
-  const [estadoAtual, setEstadoAtual] = useState(null);
-  const [municipioAtual, setMunicipioAtual] = useState(null);
-  const [locaisVotacao, setLocaisVotacao] = useState([]);
-  const [localSelecionado, setLocalSelecionado] = useState(null);
-  const [secaoSelecionada, setSecaoSelecionada] = useState(null);
+export default function App() {
+  const [theme, setTheme] = useTheme();
+  const route = useRoute();
+  const [p0, ...ps] = route.parts;
 
-  // Modais
-  const [isSecaoModalOpen, setIsSecaoModalOpen] = useState(false);
-  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  useEffect(() => { window.scrollTo(0, 0); }, [route.path]);
 
-  // Estado de Zona Eleitoral (Filtro quando cidade possui múltiplas zonas, ex: Fortaleza com 17 Zonas)
-  const [zonaSelecionada, setZonaSelecionada] = useState('TODAS');
-
-  // Manipulador de Seleção de Estado
-  const handleSelectEstado = (estado) => {
-    setEstadoAtual(estado);
-    setMunicipioAtual(null);
-    setZonaSelecionada('TODAS');
-    setLocaisVotacao([]);
-    setLocalSelecionado(null);
-    setSecaoSelecionada(null);
-  };
-
-  // Manipulador de Seleção de Município
-  const handleSelectMunicipio = (mun) => {
-    setMunicipioAtual(mun);
-    setZonaSelecionada('TODAS');
-    setLocalSelecionado(null);
-    setSecaoSelecionada(null);
-
-    if (mun && estadoAtual) {
-      const locais = getLocaisVotacao(
-        estadoAtual.sigla,
-        mun,
-        mun.lat,
-        mun.lng
-      );
-      setLocaisVotacao(locais);
-    } else {
-      setLocaisVotacao([]);
-    }
-  };
-
-  // Manipulador de Seleção de Local de Votação (Colégio)
-  const handleSelectLocal = (local) => {
-    setLocalSelecionado(local);
-    setSecaoSelecionada(null);
-  };
-
-  // Manipulador de Seleção de Seção Eleitoral
-  const handleSelectSecao = (secao) => {
-    setSecaoSelecionada(secao);
-  };
-
-  // Reset de níveis no Breadcrumb
-  const handleResetToBrasil = () => {
-    setEstadoAtual(null);
-    setMunicipioAtual(null);
-    setZonaSelecionada('TODAS');
-    setLocaisVotacao([]);
-    setLocalSelecionado(null);
-    setSecaoSelecionada(null);
-  };
-
-  const handleResetToEstado = () => {
-    setMunicipioAtual(null);
-    setZonaSelecionada('TODAS');
-    setLocaisVotacao([]);
-    setLocalSelecionado(null);
-    setSecaoSelecionada(null);
-  };
-
-  const handleResetToMunicipio = () => {
-    setLocalSelecionado(null);
-    setSecaoSelecionada(null);
-  };
-
-  const handleResetToLocal = () => {
-    setSecaoSelecionada(null);
-  };
-
-  // Busca rápida (Search Modal)
-  const handleSelectStateAndCityFromSearch = (estado, mun, secaoNum) => {
-    if (estado) {
-      setEstadoAtual(estado);
-      if (mun) {
-        setMunicipioAtual(mun);
-        setZonaSelecionada('TODAS');
-        const locais = getLocaisVotacao(estado.sigla, mun, mun.lat, mun.lng);
-        setLocaisVotacao(locais);
-
-        if (secaoNum && locais.length > 0) {
-          // Localiza a escola/local exato que contém a seção buscada
-          let targetLoc = locais.find(l => l.secoes.some(s => s.numero === secaoNum));
-          if (!targetLoc) {
-            targetLoc = locais[0];
-            targetLoc.secoes.unshift({
-              numero: secaoNum,
-              zona: mun.zonas?.[0] || targetLoc.zona || '0001',
-              localNome: targetLoc.nome,
-              urnasModelo: 'UE2022',
-              aptos: 378
-            });
-          }
-          setLocalSelecionado(targetLoc);
-          const targetSec = targetLoc.secoes.find(s => s.numero === secaoNum) || {
-            numero: secaoNum,
-            zona: targetLoc.zona,
-            localNome: targetLoc.nome,
-            aptos: 378
-          };
-          setSecaoSelecionada(targetSec);
-          setIsSecaoModalOpen(true);
-        }
-      }
-    }
-  };
-
-  // Obter lista completa oficial de municípios para o estado selecionado (ex: 184 no CE, 645 em SP)
-  const municipiosDisponiveis = estadoAtual
-    ? allMunicipalities[estadoAtual.sigla] || []
-    : [];
-
-  // Dados do Boletim da Seção (se uma seção estiver ativa)
-  const boletimSecaoAtual = secaoSelecionada && municipioAtual && estadoAtual
-    ? getBoletimDeUrna(
-        estadoAtual.sigla,
-        municipioAtual.nome,
-        secaoSelecionada.zona,
-        secaoSelecionada.numero,
-        cargoAtual,
-        turnoAtual
-      )
-    : null;
+  let page;
+  if (!p0) page = <BrasilPage query={route.query} />;
+  else if (p0 === 'uf' && ps.length === 1) page = <UfPage uf={ps[0].toUpperCase()} query={route.query} />;
+  else if (p0 === 'uf' && ps.length === 2) page = <MunicipioPage uf={ps[0].toUpperCase()} cd={ps[1]} query={route.query} />;
+  else if (p0 === 'uf' && ps.length >= 4) page = <SecaoPage uf={ps[0].toUpperCase()} cd={ps[1]} z={+ps[2]} s={+ps[3]} query={route.query} />;
+  else if (p0 === 'comparar') page = <CompararPage query={route.query} />;
+  else if (p0 === 'painel') page = <PainelPage query={route.query} />;
+  else if (p0 === 'auditoria') page = <AuditoriaPage />;
+  else if (p0 === 'localizar') page = <LocalizarPage query={route.query} />;
+  else page = <div className="card p-6">Página não encontrada. <a className="link" href="#/">Voltar ao início</a></div>;
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 flex flex-col selection:bg-blue-600 selection:text-white transition-colors duration-150">
-      {/* Top Navbar */}
-      <Header
-        cargoAtual={cargoAtual}
-        setCargoAtual={setCargoAtual}
-        turnoAtual={turnoAtual}
-        setTurnoAtual={setTurnoAtual}
-        theme={theme}
-        onToggleTheme={toggleTheme}
-        onOpenSearch={() => setIsSearchModalOpen(true)}
-        onOpenImport={() => setIsImportModalOpen(true)}
-        nivelAtual={secaoSelecionada ? 'SECAO' : municipioAtual ? 'MUNICIPIO' : estadoAtual ? 'ESTADO' : 'BRASIL'}
-        ufAtual={estadoAtual?.sigla}
-      />
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-5">
-        {/* Breadcrumb de Navegação Hierárquica */}
-        <Breadcrumb
-          estado={estadoAtual}
-          municipio={municipioAtual}
-          localVotacao={localSelecionado}
-          secao={secaoSelecionada}
-          onResetToBrasil={handleResetToBrasil}
-          onResetToEstado={handleResetToEstado}
-          onResetToMunicipio={handleResetToMunicipio}
-          onResetToLocal={handleResetToLocal}
-        />
-
-        {/* Indicadores Principais (KPI Cards) */}
-        <KpiCards
-          cargoAtual={cargoAtual}
-          estado={estadoAtual}
-          municipio={municipioAtual}
-          secao={secaoSelecionada}
-          boletimSecao={boletimSecaoAtual}
-        />
-
-        {/* Grid Principal: Mapa Interativo e Gráficos de Resultados */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          {/* Coluna do Mapa do Brasil (7/12) */}
-          <div className="lg:col-span-7 xl:col-span-8 space-y-4">
-            <BrazilMap
-              theme={theme}
-              cargoAtual={cargoAtual}
-              turnoAtual={turnoAtual}
-              estadoAtual={estadoAtual}
-              municipiosDisponiveis={municipiosDisponiveis}
-              municipioAtual={municipioAtual}
-              locaisVotacao={locaisVotacao}
-              localSelecionado={localSelecionado}
-              secaoSelecionada={secaoSelecionada}
-              zonaSelecionada={zonaSelecionada}
-              onSelectZona={setZonaSelecionada}
-              onSelectEstado={handleSelectEstado}
-              onSelectMunicipio={handleSelectMunicipio}
-              onSelectLocal={handleSelectLocal}
-              onSelectSecao={handleSelectSecao}
-              onOpenSecaoModal={() => setIsSecaoModalOpen(true)}
-              onResetToBrasil={handleResetToBrasil}
-            />
+    <ComparacaoProvider>
+      <div className="min-h-screen flex flex-col">
+        <header className="sticky top-0 z-30 backdrop-blur" style={{ background: 'color-mix(in srgb, var(--surface) 92%, transparent)', boxShadow: '0 1px 0 var(--ring)' }}>
+          <div className="max-w-7xl mx-auto px-4 py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <a href="#/" className="flex items-center gap-2 shrink-0">
+              <span className="w-8 h-8 rounded-lg grid place-items-center text-white font-bold text-sm" style={{ background: 'var(--accent)' }}>26</span>
+              <span className="leading-tight">
+                <span className="block text-sm font-semibold">Eleições 2026</span>
+                <span className="block text-[11px] muted">Auditoria por seção · dados oficiais TSE</span>
+              </span>
+            </a>
+            <div className="flex-1 min-w-[220px] order-3 lg:order-none basis-full lg:basis-auto flex justify-center"><SearchBox /></div>
+            <nav className="flex items-center gap-1 overflow-x-auto order-2 lg:order-none">
+              <NavLink to={rotas.brasil()} ativo={!p0 || p0 === 'uf'} icon={MapIcon}>Explorar</NavLink>
+              <NavLink to={rotas.localizar()} ativo={p0 === 'localizar'} icon={Crosshair}>Localizar urna</NavLink>
+              <NavLink to={rotas.comparar([])} ativo={p0 === 'comparar'} icon={GitCompare}>Comparar</NavLink>
+              <NavLink to={rotas.painel()} ativo={p0 === 'painel'} icon={LayoutDashboard}>Painel</NavLink>
+              <NavLink to={rotas.auditoria()} ativo={p0 === 'auditoria'} icon={ShieldCheck}>Auditoria</NavLink>
+              <button className="btn !px-2" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Alternar tema claro/escuro" title="Alternar tema">
+                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              </button>
+            </nav>
           </div>
+        </header>
 
-          {/* Coluna Lateral: Gráficos de Votação por Cargo (5/12) */}
-          <div className="lg:col-span-5 xl:col-span-4 space-y-4">
-            <CandidatesChart
-              cargoAtual={cargoAtual}
-              turnoAtual={turnoAtual}
-              estado={estadoAtual}
-              municipio={municipioAtual}
-              secao={secaoSelecionada}
-              boletimSecao={boletimSecaoAtual}
-            />
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-5 pb-28">{page}</main>
+
+        <footer className="text-xs muted py-6 px-4" style={{ boxShadow: '0 -1px 0 var(--ring)' }}>
+          <div className="max-w-7xl mx-auto flex flex-wrap gap-x-6 gap-y-2 justify-between">
+            <span>Eleições Gerais 2026 · 1º turno (04/10/2026). Fontes: Portal de Dados Abertos do TSE e arquivos de urna publicados em resultados.tse.jus.br.</span>
+            <a className="link" href={rotas.auditoria()}>Metodologia e auditoria dos dados →</a>
           </div>
-        </div>
-
-        {/* Painel de Drill-down Territorial: Cidades, Escolas e Urnas */}
-        <DrillDownPanel
-          cargoAtual={cargoAtual}
-          estado={estadoAtual}
-          municipiosDisponiveis={municipiosDisponiveis}
-          municipioAtual={municipioAtual}
-          onSelectMunicipio={handleSelectMunicipio}
-          locaisVotacao={locaisVotacao}
-          localSelecionado={localSelecionado}
-          onSelectLocal={handleSelectLocal}
-          secaoSelecionada={secaoSelecionada}
-          onSelectSecao={handleSelectSecao}
-          zonaSelecionada={zonaSelecionada}
-          onSelectZona={setZonaSelecionada}
-          onOpenSecaoModal={() => setIsSecaoModalOpen(true)}
-        />
-      </main>
-
-      {/* Rodapé Oficial */}
-      <footer className="mt-12 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 py-6 text-center text-xs text-slate-500 dark:text-slate-400 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span className="font-semibold text-slate-700 dark:text-slate-300">DivulgaBR 2026</span>
-            <span>• Painel de Auditoria e Inteligência Eleitoral das Eleições Gerais</span>
-          </div>
-          <div className="flex items-center gap-4 text-[11px]">
-            <span>Dados Oficiais: TSE (Tribunal Superior Eleitoral)</span>
-            <span>Urnas UE2020 / UE2022</span>
-          </div>
-        </div>
-      </footer>
-
-      {/* Modais Globais */}
-      <SectionModal
-        isOpen={isSecaoModalOpen}
-        onClose={() => setIsSecaoModalOpen(false)}
-        secao={secaoSelecionada}
-        municipio={municipioAtual}
-        estado={estadoAtual}
-        turnoAtual={turnoAtual}
-      />
-
-      <SearchModal
-        isOpen={isSearchModalOpen}
-        onClose={() => setIsSearchModalOpen(false)}
-        onSelectStateAndCity={handleSelectStateAndCityFromSearch}
-        estadoAtual={estadoAtual}
-        municipioAtual={municipioAtual}
-      />
-
-      <TseImportModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-      />
-    </div>
+        </footer>
+        <BandejaComparacao />
+      </div>
+    </ComparacaoProvider>
   );
 }
