@@ -76,19 +76,19 @@ export default function MunicipioPage({ uf, cd, query }) {
       <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, { label: UF_NOMES[uf], href: rotas.uf(uf, { c: cargo }) }, { label: nomeMun }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{nomeMun} <span className="muted font-normal">– {uf}</span></h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">{nomeMun} <span className="muted font-normal">– {uf}</span></h1>
           <p className="text-sm ink-2">
-            Código TSE {cd}{m.ibge ? ` · IBGE ${m.ibge}` : ''} · {m.zonas.length} zona(s): {m.zonas.map(z => pad(z)).join(', ')} · {fmt(m.nLocais)} locais · {fmt(m.nSecoes)} seções com urna{m.nAgregadas ? ` (+${fmt(m.nAgregadas)} agregadas)` : ''}
+            Código TSE {cd}{m.ibge ? ` · IBGE ${m.ibge}` : ''} · {m.zonas.length} zona(s): {m.zonas.slice(0, 6).map(z => pad(z)).join(', ')}{m.zonas.length > 6 ? ` e mais ${m.zonas.length - 6}` : ''} · {fmt(m.nLocais)} locais · {fmt(m.nSecoes)} seções com urna{m.nAgregadas ? ` (+${fmt(m.nAgregadas)} agregadas)` : ''}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           <CargoPicker cargo={cargo} disponiveis={disp} />
           <BotaoComparar id={idMun(uf, cd)} rotulo={`${nomeMun} – ${uf}`} />
           <a className="btn" href={urlPortalMunicipio(uf, cd, cargo)} target="_blank" rel="noreferrer" title="Abrir este município no portal oficial de resultados do TSE">TSE <ExternalLink className="w-3.5 h-3.5" /></a>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
         <Seg value={tab} onChange={v => setQuery({ tab: v })} options={TABS} />
         <Select value={zonaFiltro ?? ''} onChange={v => setQuery({ zona: v || undefined, local: undefined })} aria-label="Filtrar por zona" className="!py-1 text-sm">
           <option value="">Todas as zonas</option>
@@ -124,12 +124,12 @@ function AbaResultado({ uf, cd, cargo, st, candRef, m, dep, depData, partidos, f
   return (
     <div className="space-y-4">
       <Indicadores st={stF} cargo={cargo} extra={[filtrado ? `${fmt(agg?.nSecoes)} seções no filtro` : `${fmt(m.nSecoes)} seções`]} />
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card
           title={`Resultado · ${cargoNome(cargo)}${filtrado ? ' (filtro aplicado)' : ''}`}
           subtitle={<>Soma das seções do município · <a className="link" href={urlDivulgacao(uf, cd, cargo)} target="_blank" rel="noreferrer">JSON oficial do TSE para conferência</a></>}
         >
-          {itens ? <ResultadoCandidatos itens={itens} st={stF} cargo={cargo} max={dep ? 30 : 13} /> : (
+          {itens ? <ResultadoCandidatos itens={itens} st={stF} cargo={cargo} max={dep ? 10 : 13} /> : (
             <p className="text-sm muted">Para deputados, os votos por candidato estão disponíveis no total do município e em cada seção (via boletim de urna). Remova o filtro de zona/local para ver o total.</p>
           )}
         </Card>
@@ -180,7 +180,7 @@ function AbaLocais({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
         {r.local.original && <div className="text-xs" style={{ color: 'var(--warn)' }}>Local alterado; original: {titulo(r.local.original.nome)}</div>}
       </div>
     ) },
-    { key: 'bairro', label: 'Bairro', value: r => r.local.bairro && titulo(r.local.bairro) },
+    { key: 'bairro', label: 'Bairro', value: r => r.local.bairro && titulo(r.local.bairro), ocultarMobile: true },
     { key: 'z', label: 'Zona', value: r => r.z, align: 'right', render: r => pad(r.z) },
     { key: 'ns', label: 'Seções', value: r => r.nSecoes, align: 'right' },
     ...colunasMetricas(cargo, dep ? null : candRef, { candidatos: 3 }),
@@ -202,9 +202,9 @@ function AbaLocais({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
 
 function AbaSecoes({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
   const colunas = [
-    { key: 'z', label: 'Zona', value: r => r.z, align: 'right', render: r => pad(r.z) },
-    { key: 's', label: 'Seção', value: r => r.s, align: 'right', render: r => <a className="link font-semibold num" href={rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo })} onClick={e => e.stopPropagation()}>{pad(r.s)}</a> },
-    { key: 'loc', label: 'Local', value: r => r.local?.nome, render: r => <span className="truncate inline-block max-w-[260px] align-bottom" title={r.local?.nome}>{titulo(r.local?.nome || '')}</span> },
+    { key: 'z', label: 'Zona', value: r => r.z, align: 'right', render: r => pad(r.z), ocultarMobile: true },
+    { key: 's', label: 'Seção', value: r => r.s, align: 'right', render: r => <a className="link font-semibold num" href={rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo })} onClick={e => e.stopPropagation()}>{pad(r.s)}</a>, ocultarMobile: true },
+    { key: 'loc', label: 'Local', value: r => r.local?.nome, render: r => <span className="truncate inline-block max-w-[260px] align-bottom" title={r.local?.nome}>{titulo(r.local?.nome || '')}</span>, ocultarMobile: true },
     { key: 'situ', label: 'Situação', value: r => (r.ag ? `Agregada à ${pad(r.p)}` : r.anulada ? 'Anulada' : r.naoInstalada ? 'Não instalada' : r.agr ? `Principal (+${r.agr.length})` : 'Normal'),
       render: r => (r.ag ? <span className="chip">Agregada → {pad(r.p)}</span> : r.anulada ? <span className="chip" style={{ color: 'var(--bad)' }}>Anulada</span> : r.agr ? <span className="chip" title={`Agrega: ${r.agr.map(x => pad(x)).join(', ')}`}>+{r.agr.length} agregada(s)</span> : '') },
     ...colunasMetricas(cargo, dep ? null : candRef, { candidatos: 3 }).map(c => ({ ...c, value: r => (r.st ? c.value(r) : null), render: r => (r.st ? (c.render ? c.render(r) : c.value(r)) : '—') })),
@@ -213,7 +213,7 @@ function AbaSecoes({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
   ];
   return (
     <Card title="Seções eleitorais (urnas)" subtitle="Clique numa seção para ver o boletim de urna e conferir ao vivo com o TSE. Seções agregadas votam na urna da seção principal.">
-      <DataTable linhas={secoes} colunas={colunas} rowKey={r => r.id} ordemInicial={{ key: 's', dir: 'asc' }} porPagina={100} nomeArquivo={`${cd}-secoes`} onRowClick={r => { window.location.hash = rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo }); }} />
+      <DataTable linhas={secoes} colunas={colunas} rowKey={r => r.id} tituloMobile={r => <span><span className="font-semibold">Seção {pad(r.s)}</span> <span className="muted">· Zona {pad(r.z)}</span><span className="block text-xs muted font-normal">{titulo(r.local?.nome || '')}</span></span>} ordemInicial={{ key: 's', dir: 'asc' }} porPagina={100} nomeArquivo={`${cd}-secoes`} onRowClick={r => { window.location.hash = rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo }); }} />
     </Card>
   );
 }
@@ -245,7 +245,7 @@ function AbaDistribuicao({ uf, cd, cargo, candRef, secoes, dep }) {
         <Select value={my} onChange={setMy} className="!py-1 text-xs">{ops.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>
         <span className="muted text-xs">{fmt(comVoto.length)} seções</span>
       </div>
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card title={`Distribuição: ${label(mx)}`} subtitle="Cada unidade é uma seção (urna)"><Histogram values={pontos.map(p => p.x)} format={f1} xLabel={label(mx)} /></Card>
         <Card title={`Distribuição: ${label(my)}`} subtitle="Cada unidade é uma seção (urna)"><Histogram values={pontos.map(p => p.y)} format={f1} xLabel={label(my)} /></Card>
       </div>

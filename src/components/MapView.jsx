@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Move, Lock } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -19,14 +20,27 @@ export default function MapView({ geo, estilo, pontos, height = 420, chaveAjuste
   const tiles = useRef(null);
   const camada = useRef(null);
   const dark = document.documentElement.classList.contains('dark');
+  // Em telas de toque, o arrasto com um dedo fica desligado para não prender a rolagem da página;
+  // o usuário ativa explicitamente pelo botão (o zoom com dois dedos continua funcionando).
+  const toque = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+  const [livre, setLivre] = useState(!toque);
+  const estreito = typeof window !== 'undefined' && window.innerWidth < 640;
+  const altura = estreito ? Math.min(height, Math.round(window.innerHeight * 0.5), 360) : height;
 
   useEffect(() => {
-    map.current = L.map(el.current, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, preferCanvas: true });
+    map.current = L.map(el.current, { zoomControl: !toque, attributionControl: true, scrollWheelZoom: false, preferCanvas: true, dragging: !toque, tap: !toque });
     map.current.setView([-14.2, -51.9], 4);
     map.current.on('focus', () => map.current.scrollWheelZoom.enable());
     map.current.on('blur', () => map.current.scrollWheelZoom.disable());
     return () => { map.current.remove(); map.current = null; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const m = map.current;
+    if (!m) return;
+    if (livre) m.dragging.enable(); else m.dragging.disable();
+  }, [livre]);
 
   useEffect(() => {
     if (tiles.current) tiles.current.remove();
@@ -83,7 +97,20 @@ export default function MapView({ geo, estilo, pontos, height = 420, chaveAjuste
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chaveAjuste, geo]);
 
-  return <div ref={el} style={{ height }} className="rounded-lg overflow-hidden" tabIndex={0} aria-label="Mapa interativo" />;
+  return (
+    <div className="relative">
+      <div ref={el} style={{ height: altura }} className="rounded-lg overflow-hidden" tabIndex={0} aria-label="Mapa interativo" />
+      {toque && (
+        <button
+          className="btn absolute top-2 right-2 z-[500] !py-1 text-xs"
+          onClick={() => setLivre(v => !v)}
+          aria-pressed={livre}
+        >
+          {livre ? <><Lock className="w-3.5 h-3.5" /> Travar mapa</> : <><Move className="w-3.5 h-3.5" /> Mover mapa</>}
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function LegendaSequencial({ min, max, cores, rotulo, format = v => v }) {

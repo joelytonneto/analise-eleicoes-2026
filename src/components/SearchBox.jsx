@@ -65,8 +65,10 @@ export default function SearchBox() {
     const k = e => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); ref.current?.focus(); setOpen(true); }
     };
+    const abrir = () => { setTimeout(() => ref.current?.focus(), 250); setOpen(true); };
     window.addEventListener('keydown', k);
-    return () => window.removeEventListener('keydown', k);
+    window.addEventListener('abrir-busca', abrir);
+    return () => { window.removeEventListener('keydown', k); window.removeEventListener('abrir-busca', abrir); };
   }, []);
 
   const res = useMemo(() => (q.trim() ? interpretar(q, municipios) : []), [q, municipios]);
@@ -81,7 +83,7 @@ export default function SearchBox() {
       <input
         ref={ref}
         className="input w-full pl-8 pr-14"
-        placeholder="Município, zona e seção — ex.: Itaitinga 78 393"
+        placeholder="Ex.: Itaitinga 78 393"
         value={q}
         onChange={e => { setQ(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
@@ -96,7 +98,7 @@ export default function SearchBox() {
       />
       <kbd className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] muted chip hidden sm:inline-flex">Ctrl K</kbd>
       {open && q.trim() && (
-        <div className="absolute z-40 mt-1 w-full card py-1 max-h-96 overflow-auto" style={{ boxShadow: '0 0 0 1px var(--ring), 0 12px 32px rgba(0,0,0,.2)' }}>
+        <div className="absolute z-50 mt-1 w-full card py-1 max-h-[60vh] overflow-auto" style={{ boxShadow: '0 0 0 1px var(--ring), 0 12px 32px rgba(0,0,0,.2)' }}>
           {!municipios.length && <div className="px-3 py-2 text-sm muted">Carregando índice de municípios…</div>}
           {municipios.length > 0 && !res.length && (
             <div className="px-3 py-2 text-sm muted">Nenhum resultado. Tente “nome do município + zona + seção”, ex.: <b>Fortaleza 114 1</b>.</div>
@@ -104,7 +106,7 @@ export default function SearchBox() {
           {res.map((r, i) => {
             const I = Icon[r.tipo];
             return (
-              <button key={r.href + i} onMouseDown={() => go(r)} onMouseEnter={() => setSel(i)} className="w-full text-left px-3 py-2 flex items-start gap-2" style={i === sel ? { background: 'var(--surface-2)' } : undefined}>
+              <button key={r.href + i} onMouseDown={() => go(r)} onMouseEnter={() => setSel(i)} className="w-full text-left px-3 py-2.5 sm:py-2 flex items-start gap-2" style={i === sel ? { background: 'var(--surface-2)' } : undefined}>
                 <I className="w-4 h-4 mt-0.5 muted shrink-0" />
                 <span className="min-w-0">
                   <span className="block text-sm font-medium truncate">{r.label}</span>

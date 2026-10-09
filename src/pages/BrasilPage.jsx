@@ -64,7 +64,7 @@ export default function BrasilPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Brasil · Presidente</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">Brasil · Presidente</h1>
           <p className="text-sm ink-2">1º turno · 04/10/2026 · {fmt(nMun)} municípios (incl. {brasil.ufs.find(u => u.uf === 'ZZ')?.nMun} cidades no exterior) · {fmt(nLocais)} locais de votação · {fmt(nSecoes)} seções com urna</p>
         </div>
         <div className="flex gap-2">
@@ -74,7 +74,7 @@ export default function BrasilPage() {
       </div>
       <SeloAuditoria />
       <Indicadores st={st} cargo={1} />
-      <div className="grid lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card title="Resultado nacional" subtitle="Votos nominais por candidato" className="lg:col-span-2">
           <ResultadoCandidatos itens={itens} st={st} cargo={1} max={13} />
           <div className="mt-4"><ComposicaoVotos st={st} cargo={1} /></div>

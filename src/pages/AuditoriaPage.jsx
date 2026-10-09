@@ -25,7 +25,7 @@ export default function AuditoriaPage() {
   return (
     <div className="space-y-4 max-w-6xl">
       <div>
-        <h1 className="text-2xl font-semibold flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> Auditoria e metodologia</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> Auditoria e metodologia</h1>
         <p className="text-sm ink-2 max-w-3xl">Este painel não estima, sorteia nem preenche nenhum número. Tudo vem de arquivos oficiais do Tribunal Superior Eleitoral, e a base foi conferida contra três referências independentes. Abaixo estão as fontes, as verificações e uma ferramenta para você mesmo conferir urnas ao vivo.</p>
       </div>
 

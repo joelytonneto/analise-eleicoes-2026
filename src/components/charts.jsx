@@ -30,8 +30,10 @@ function Tip({ tip }) {
  * itens: [{ n, nome, partido, votos, cor, resultado }], total = base do percentual (válidos)
  */
 export function CandidateBars({ itens, total, max = 12, compacto = false, mostrarNumero = true }) {
-  const lista = itens.slice(0, max);
-  const resto = itens.slice(max);
+  const [todos, setTodos] = useState(false);
+  const lim = todos ? itens.length : max;
+  const lista = itens.slice(0, lim);
+  const resto = itens.slice(lim);
   const outros = resto.reduce((a, c) => a + (c.votos || 0), 0);
   const top = Math.max(1, ...lista.map(c => c.votos || 0), outros);
   const linhas = resto.length ? [...lista, { n: 'outros', nome: `Outros (${resto.length})`, votos: outros, cor: '#898781' }] : lista;
@@ -42,7 +44,7 @@ export function CandidateBars({ itens, total, max = 12, compacto = false, mostra
         return (
           <div key={c.n} title={`${c.nome}${c.partido ? ` (${c.partido})` : ''}: ${fmt(c.votos)} votos · ${fmtPct(p)} dos válidos`}>
             <div className="flex items-baseline justify-between gap-2 text-sm">
-              <div className="min-w-0 truncate">
+              <div className="min-w-0 truncate sm:whitespace-nowrap">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm mr-1.5 align-middle" style={{ background: c.cor }} />
                 <span className="font-medium">{c.nome}</span>
                 {c.partido && <span className="muted text-xs ml-1">{c.partido}{mostrarNumero && typeof c.n === 'number' ? ` · ${c.n}` : ''}</span>}
@@ -61,6 +63,11 @@ export function CandidateBars({ itens, total, max = 12, compacto = false, mostra
           </div>
         );
       })}
+      {itens.length > max && (
+        <button className="btn !py-1 text-xs w-full justify-center" onClick={() => setTodos(t => !t)}>
+          {todos ? 'Mostrar menos' : `Ver todos os ${itens.length} candidatos`}
+        </button>
+      )}
     </div>
   );
 }

@@ -43,12 +43,12 @@ export function BandejaComparacao() {
   const { parts } = useRoute();
   if (!c.itens.length || parts[0] === 'comparar') return null;
   return (
-    <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-40 w-[calc(100%-24px)] max-w-3xl no-print">
-      <div className="card px-3 py-2 flex items-center gap-2 flex-wrap" style={{ boxShadow: '0 0 0 1px var(--ring), 0 12px 32px rgba(0,0,0,.25)' }}>
+    <div className="fixed bottom-[72px] lg:bottom-3 left-1/2 -translate-x-1/2 z-30 w-[calc(100%-16px)] max-w-3xl no-print">
+      <div className="card px-3 py-2 flex items-center gap-2" style={{ boxShadow: '0 0 0 1px var(--ring), 0 12px 32px rgba(0,0,0,.25)' }}>
         <GitCompare className="w-4 h-4 muted" />
-        <div className="flex-1 flex gap-1.5 flex-wrap min-w-0">
+        <div className="flex-1 flex gap-1.5 min-w-0 scroll-x sm:flex-wrap">
           {c.itens.map(i => (
-            <span key={i.id} className="chip max-w-[220px]">
+            <span key={i.id} className="chip shrink-0 max-w-[160px] sm:max-w-[220px]">
               <span className="truncate">{i.rotulo}</span>
               <button onClick={() => c.remover(i.id)} aria-label={`Remover ${i.rotulo}`}><X className="w-3 h-3" /></button>
             </span>

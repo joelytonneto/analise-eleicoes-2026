@@ -50,7 +50,7 @@ export default function CompararPage({ query }) {
   if (!ids.length) {
     return (
       <div className="space-y-4 max-w-3xl">
-        <h1 className="text-2xl font-semibold flex items-center gap-2"><GitCompare className="w-6 h-6" /> Comparar</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><GitCompare className="w-6 h-6" /> Comparar</h1>
         <p className="text-sm ink-2">Compare lado a lado até 6 unidades de qualquer nível: seções (urnas), locais de votação, zonas, municípios, UFs ou o Brasil. Adicione pela busca abaixo ou pelo botão <b>Comparar</b> presente em cada página e tabela.</p>
         <AdicionarUnidade onAdd={id => setIds([id])} />
         {bandeja.itens.length > 0 && (
@@ -121,15 +121,15 @@ export default function CompararPage({ query }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2"><GitCompare className="w-6 h-6" /> Comparação · {cargoNome(cargo)}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><GitCompare className="w-6 h-6" /> Comparação · {cargoNome(cargo)}</h1>
           <p className="text-sm ink-2">{validas.length} unidade(s). O link desta página guarda a comparação — copie para compartilhar.</p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           {cargosComuns.length > 1 && <Seg value={cargo} onChange={v => setQuery({ c: v })} options={cargosComuns.map(c => ({ value: c.id, label: c.curto }))} />}
           <button className="btn" onClick={() => navigator.clipboard?.writeText(window.location.href)}><Link2 className="w-4 h-4" /> Copiar link</button>
         </div>
       </div>
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
         {unidades.map((u, k) => (
           <span key={u.id} className="chip !py-1 !px-2.5">
             <b>{LETRAS[k]}</b> {u.erro ? <span style={{ color: 'var(--bad)' }}>{u.id}: {u.erro}</span> : <a className="hover:underline" href={u.href}>{u.nome} <span className="muted">· {u.sub}</span></a>}
@@ -153,7 +153,7 @@ export default function CompararPage({ query }) {
               </table>
             </div>
           </Card>
-          <div className={`grid gap-4 ${validas.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
+          <div className={`grid grid-cols-1 gap-4 ${validas.length >= 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
             {validas.map((u, k) => {
               const itens = itensDeVetor(u.v?.[cargo], u.cand?.[cargo]);
               return (

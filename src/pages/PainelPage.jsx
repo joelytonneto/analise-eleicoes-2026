@@ -177,7 +177,7 @@ export default function PainelPage({ query }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold flex items-center gap-2"><LayoutDashboard className="w-6 h-6" /> Painel personalizado</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><LayoutDashboard className="w-6 h-6" /> Painel personalizado</h1>
           <p className="text-sm ink-2">Escolha o recorte, o nível de detalhe, os filtros e os blocos de visualização. Tudo fica no link — salve ou compartilhe.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -229,7 +229,7 @@ export default function PainelPage({ query }) {
       <Card title="Filtros" subtitle={dados.data ? `${fmt(filtradas.length)} de ${fmt(linhas.length)} ${NIVEIS[cfg.nivel].toLowerCase()} atendem aos filtros` : ''}>
         <div className="space-y-2">
           {cfg.filtros.map((f, i) => (
-            <div key={i} className="flex flex-wrap gap-2 items-center">
+            <div key={i} className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
               <Filter className="w-4 h-4 muted" />
               <Select value={f.campo} onChange={v => setCfg({ filtros: cfg.filtros.map((x, k) => (k === i ? { ...x, campo: v } : x)) })} className="!py-1 text-sm">
                 <option value="texto">Texto contém</option>
@@ -254,7 +254,7 @@ export default function PainelPage({ query }) {
       {dados.loading && <Loading texto={prog ? `Carregando municípios ${prog[0]} de ${prog[1]}…` : 'Carregando dados…'} />}
       {dados.error && <ErrorBox error={dados.error} />}
       {dados.data && (
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {cfg.widgets.map((w, i) => (
             <Widget key={i} w={w} i={i} total={cfg.widgets.length} cfg={cfg} cat={cat} linhas={filtradas} dados={dados.data}
               onChange={p => setWidget(i, p)} onRemove={() => setCfg({ widgets: cfg.widgets.filter((_, k) => k !== i) })} onMove={d => mover(i, d)} />

@@ -1,15 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, Download, Search } from 'lucide-react';
+import { ArrowDown, ArrowUp, Download, Search, ChevronRight } from 'lucide-react';
 import { semAcento } from '../lib/format';
+import { useIsMobile } from './ui';
 
 /**
  * Tabela genérica.
  * colunas: [{ key, label, value: row => any (para ordenar/exportar), render?: row => node, align?: 'right', title? }]
  */
-export default function DataTable({ linhas, colunas, ordemInicial, porPagina = 50, onRowClick, busca = true, nomeArquivo = 'dados', rowKey, destaque, vazio = 'Nenhum registro.', acoes }) {
+export default function DataTable({ linhas, colunas, ordemInicial, porPagina = 50, onRowClick, busca = true, nomeArquivo = 'dados', rowKey, destaque, vazio = 'Nenhum registro.', acoes, tituloMobile }) {
   const [ordem, setOrdem] = useState(ordemInicial || { key: colunas[0].key, dir: 'asc' });
   const [q, setQ] = useState('');
   const [pag, setPag] = useState(0);
+  const mobile = useIsMobile();
+  const [qtdMobile, setQtdMobile] = useState(20);
 
   const filtradas = useMemo(() => {
     if (!q.trim()) return linhas;
@@ -54,9 +57,9 @@ export default function DataTable({ linhas, colunas, ordemInicial, porPagina = 5
     <div>
       <div className="flex flex-wrap items-center gap-2 mb-2">
         {busca && (
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none min-w-[160px]">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 muted" />
-            <input className="input pl-7 !py-1 w-56" placeholder="Filtrar…" value={q} onChange={e => { setQ(e.target.value); setPag(0); }} aria-label="Filtrar tabela" />
+            <input className="input pl-7 !py-1 w-full sm:w-56" placeholder="Filtrar…" value={q} onChange={e => { setQ(e.target.value); setPag(0); }} aria-label="Filtrar tabela" />
           </div>
         )}
         <span className="text-xs muted">{ordenadas.length.toLocaleString('pt-BR')} registro(s)</span>
@@ -64,6 +67,12 @@ export default function DataTable({ linhas, colunas, ordemInicial, porPagina = 5
         {acoes}
         <button className="btn !py-1 text-xs" onClick={exportar} title="Baixar a tabela (com filtros e ordenação) em CSV"><Download className="w-3.5 h-3.5" /> CSV</button>
       </div>
+      {mobile ? (
+        <ListaMobile
+          linhas={ordenadas.slice(0, qtdMobile)} total={ordenadas.length} colunas={colunas} ordem={ordem} setOrdem={setOrdem} tituloMobile={tituloMobile}
+          onRowClick={onRowClick} rowKey={rowKey} destaque={destaque} vazio={vazio} onMais={() => setQtdMobile(n => n + 30)}
+        />
+      ) : (<>
       <div className="overflow-auto max-h-[70vh] rounded-lg" style={{ boxShadow: '0 0 0 1px var(--grid)' }}>
         <table className="tbl">
           <thead>
@@ -100,13 +109,73 @@ export default function DataTable({ linhas, colunas, ordemInicial, porPagina = 5
           </tbody>
         </table>
       </div>
-      {paginas > 1 && (
+      {paginas > 1 && !mobile && (
         <div className="flex items-center justify-end gap-2 mt-2 text-xs">
           <button className="btn !py-0.5 text-xs" disabled={p === 0} onClick={() => setPag(p - 1)}>Anterior</button>
           <span className="muted">Página {p + 1} de {paginas}</span>
           <button className="btn !py-0.5 text-xs" disabled={p >= paginas - 1} onClick={() => setPag(p + 1)}>Próxima</button>
         </div>
       )}
+      </>)}
     </div>
   );
 }
+
+/** Versão em cartões para telas estreitas: cada linha vira um bloco com rótulo e valor. */
+function ListaMobile({ linhas, total, colunas, ordem, setOrdem, onRowClick, rowKey, destaque, vazio, onMais, tituloMobile }) {
+  const titulo = tituloMobile ? { render: tituloMobile } : colunas[0];
+  const resto = tituloMobile ? colunas : colunas.slice(1);
+  const campos = resto.filter(c => c.label && !c.ocultarMobile);
+  const extras = resto.filter(c => !c.label);
+  const ordenaveis = colunas.filter(c => c.label);
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-2 text-xs">
+        <span className="muted">Ordenar por</span>
+        <select className="input !py-1 flex-1 min-w-0" value={ordem.key} onChange={e => setOrdem(o => ({ ...o, key: e.target.value }))} aria-label="Ordenar por">
+          {ordenaveis.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
+        </select>
+        <button className="btn !py-1 !px-2" onClick={() => setOrdem(o => ({ ...o, dir: o.dir === 'asc' ? 'desc' : 'asc' }))} aria-label={ordem.dir === 'asc' ? 'Crescente' : 'Decrescente'}>
+          {ordem.dir === 'asc' ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+        </button>
+      </div>
+      <div className="space-y-2">
+        {linhas.map((r, i) => (
+          <div
+            key={rowKey ? rowKey(r) : i}
+            className={`rounded-lg p-3 ${onRowClick ? 'cursor-pointer active:opacity-80' : ''}`}
+            style={{ background: 'var(--surface)', boxShadow: destaque?.(r) ? 'inset 3px 0 0 var(--accent), 0 0 0 1px var(--grid)' : '0 0 0 1px var(--grid)' }}
+            onClick={onRowClick ? () => onRowClick(r) : undefined}
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 text-sm font-medium break-words">{titulo.render ? titulo.render(r) : titulo.value(r) ?? '—'}</div>
+              <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                {extras.map(c => <span key={c.key}>{c.render ? c.render(r) : null}</span>)}
+                {onRowClick && <ChevronRight className="w-4 h-4 muted" />}
+              </div>
+            </div>
+            {campos.length > 0 && (
+              <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 mt-2">
+                {campos.map(c => {
+                  const conteudo = c.render ? c.render(r) : c.value(r) ?? '—';
+                  if (conteudo === '' || conteudo == null || conteudo === false) return null; // oculta campos vazios
+                  return (
+                    <div key={c.key} className="min-w-0">
+                      <dt className="text-[11px] muted truncate">{c.label}</dt>
+                      <dd className="text-sm num break-words">{conteudo}</dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            )}
+          </div>
+        ))}
+        {!linhas.length && <div className="text-center muted py-6 text-sm">{vazio}</div>}
+      </div>
+      {linhas.length < total && (
+        <button className="btn w-full justify-center mt-3" onClick={onMais}>Mostrar mais ({(total - linhas.length).toLocaleString('pt-BR')} restantes)</button>
+      )}
+    </div>
+  );
+}
+

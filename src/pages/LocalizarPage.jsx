@@ -32,7 +32,7 @@ export default function LocalizarPage({ query }) {
   return (
     <div className="space-y-4 max-w-4xl">
       <div>
-        <h1 className="text-2xl font-semibold flex items-center gap-2"><Crosshair className="w-6 h-6" /> Localizar urna</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><Crosshair className="w-6 h-6" /> Localizar urna</h1>
         <p className="text-sm ink-2">Escolha a UF, o município, a zona e a seção. Todas as {(idx.data || []).reduce((a, m) => a + m.nSecoes, 0).toLocaleString('pt-BR')} seções com urna do Brasil e do exterior estão disponíveis. Dica: você também pode digitar na busca do topo, por exemplo <b>“Itaitinga 78 393”</b>.</p>
       </div>
       <Card title="1. Unidade da federação">
@@ -45,7 +45,7 @@ export default function LocalizarPage({ query }) {
       {uf && (
         <Card title={`2. ${uf === 'ZZ' ? 'Cidade no exterior' : 'Município'} · ${UF_NOMES[uf]}`} subtitle={`${muns.length} opções`}>
           <input className="input w-full mb-2" placeholder="Filtrar pelo nome…" value={filtroMun} onChange={e => setFiltroMun(e.target.value)} />
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-1 max-h-72 overflow-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-1 max-h-72 overflow-auto">
             {munsFiltrados.map(m => (
               <button key={m.cd} className="text-left text-sm px-2 py-1 rounded-md hover:underline" onClick={() => setQuery({ mun: m.cd, zona: undefined })} style={cd === m.cd ? { background: 'var(--surface-2)', fontWeight: 600 } : undefined}>
                 {titulo(m.nome)} <span className="muted text-xs">({m.nSecoes})</span>

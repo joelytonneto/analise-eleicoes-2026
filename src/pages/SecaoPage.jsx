@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, Download, RefreshCw, MapPin, ChevronLeft, ChevronRight, ShieldCheck, ShieldAlert, Loader2, Info } from 'lucide-react';
-import { useAsync, Card, Loading, ErrorBox, StatusIcon } from '../components/ui';
+import { useAsync, Card, Loading, ErrorBox, StatusIcon, Detalhes } from '../components/ui';
 import Trilha from '../components/Trilha';
 import { CandidateBars } from '../components/charts';
 import { BotaoComparar } from '../components/Comparacao';
@@ -75,7 +75,7 @@ export default function SecaoPage({ uf, cd, z, s, query }) {
       <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, { label: UF_NOMES[uf], href: rotas.uf(uf) }, { label: munNome, href: rotas.mun(uf, cd) }, { label: `Zona ${pad(z)}`, href: rotas.mun(uf, cd, { tab: 'secoes', zona: z }) }, { label: `Seção ${pad(s)}` }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{titulo2}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">{titulo2}</h1>
           <p className="text-sm ink-2">{munNome} – {uf} · {titulo(local?.nome || '')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -93,7 +93,7 @@ export default function SecaoPage({ uf, cd, z, s, query }) {
       )}
       {sec.anulada === 1 && <ErrorBox>Seção marcada como <b>anulada</b> nos dados abertos do TSE.</ErrorBox>}
 
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card title="Local de votação" className="lg:col-span-1">
           <div className="space-y-3">
             <div>
@@ -102,6 +102,7 @@ export default function SecaoPage({ uf, cd, z, s, query }) {
               {local?.cep && <div className="text-xs muted">CEP {local.cep.replace(/(\d{5})(\d{3})/, '$1-$2')}</div>}
               {local?.original && <div className="text-xs mt-1" style={{ color: 'var(--warn)' }}>Local alterado. Original: {titulo(local.original.nome)} ({titulo(local.original.end || '')})</div>}
             </div>
+            <Detalhes titulo="Mais informações do local e da seção">
             <div className="grid grid-cols-2 gap-3">
               <Campo label="Nº do local">{local?.n}</Campo>
               <Campo label="Tipo">{local?.tipo}</Campo>
@@ -112,6 +113,7 @@ export default function SecaoPage({ uf, cd, z, s, query }) {
               <Campo label="Origem dos votos">{sec.o}</Campo>
               <Campo label="BU recebido pelo TSE">{sec.rb}</Campo>
             </div>
+            </Detalhes>
             <div className="flex flex-wrap gap-2">
               {mapsUrl && <a className="btn !py-1 text-xs" href={mapsUrl} target="_blank" rel="noreferrer"><MapPin className="w-3.5 h-3.5" /> Ver no mapa</a>}
               <a className="btn !py-1 text-xs" href={rotas.mun(uf, cd, { tab: 'secoes', zona: z, local: `${z}-${local?.n}` })}>Todas as seções deste local</a>
@@ -136,7 +138,7 @@ export default function SecaoPage({ uf, cd, z, s, query }) {
       {st1 && <ResumoComparecimento st={st1} bu={bu} />}
 
       {!sec.ag && sec.st && (
-        <div className="grid lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {cargos.map(c => (
             <CargoSecao key={c.id} cargo={c.id} sec={sec} candRef={candRef[c.id]} bu={bu} />
           ))}
@@ -200,6 +202,7 @@ function PainelConferencia({ bu, onRetry, uf, cd, z, s }) {
             ))}
           </div>
         )}
+        <Detalhes titulo="Dados técnicos da urna e do arquivo">
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Campo label="Nº interno da urna">{b.urna.numeroInternoUrna}</Campo>
           <Campo label="Tipo de urna">{b.urna.tipoUrna}</Campo>
@@ -215,6 +218,7 @@ function PainelConferencia({ bu, onRetry, uf, cd, z, s }) {
           <div className="muted">SHA-256 do arquivo baixado ({fmt(bu.bytes)} bytes):</div>
           <div className="font-mono break-all">{bu.sha256 || 'indisponível neste navegador'}</div>
         </div>
+        </Detalhes>
         <div className="flex flex-wrap gap-2">
           <a className="btn !py-1 text-xs" href={bu.urlBU} target="_blank" rel="noreferrer"><Download className="w-3.5 h-3.5" /> Arquivo BU original (.dat)</a>
           {bu.arquivos.filter(a => a.tp !== 'bu').map(a => (
@@ -265,7 +269,7 @@ function CargoSecao({ cargo, sec, candRef, bu }) {
       )}
     >
       <div className="space-y-3">
-        {itens.length ? <CandidateBars itens={[...itens.filter(c => !c.votoValido), ...legenda.filter(c => !c.votoValido)]} total={m.validos} max={fonte === 'bu' ? 40 : 15} compacto /> : (
+        {itens.length ? <CandidateBars itens={[...itens.filter(c => !c.votoValido), ...legenda.filter(c => !c.votoValido)]} total={m.validos} max={fonte === 'bu' ? 10 : 15} compacto /> : (
           <p className="text-sm muted">{bu.estado === 'carregando' ? 'Carregando votos por candidato do BU…' : 'Votos por candidato indisponíveis.'}</p>
         )}
         {[...itens, ...legenda].filter(c => c.votoValido && c.votos).map(c => (

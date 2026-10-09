@@ -87,22 +87,22 @@ export default function UfPage({ uf, query }) {
       <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, { label: UF_NOMES[uf] }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">{UF_NOMES[uf]} · {cargoNome(cargo)}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold">{UF_NOMES[uf]} · {cargoNome(cargo)}</h1>
           <p className="text-sm ink-2">{fmt(ctx.resumo.nMun)} {uf === 'ZZ' ? 'cidades' : 'municípios'} · {fmt(ctx.resumo.nZonas)} zonas · {fmt(ctx.resumo.nLocais)} locais · {fmt(ctx.resumo.nSecoes)} seções com urna</p>
         </div>
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           <CargoPicker cargo={cargo} disponiveis={disp} />
           <BotaoComparar id={idUf(uf)} rotulo={UF_NOMES[uf]} />
         </div>
       </div>
       <Indicadores st={ctx.st} cargo={cargo} />
-      <div className="grid lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card
           title={`Resultado · ${cargoNome(cargo)}`}
           subtitle={<>Totalização a partir das seções · <a className="link" href={urlDivulgacao(uf, null, cargo)} target="_blank" rel="noreferrer">JSON oficial do TSE</a></>}
           className="lg:col-span-2"
         >
-          <ResultadoCandidatos itens={ctx.itens} st={ctx.st} cargo={cargo} max={dep ? 25 : 12} />
+          <ResultadoCandidatos itens={ctx.itens} st={ctx.st} cargo={cargo} max={dep ? 10 : 12} />
           <div className="mt-4"><ComposicaoVotos st={ctx.st} cargo={cargo} /></div>
         </Card>
         <Card title="Mapa por município" subtitle={geo ? 'Clique num município para detalhar' : 'Sem malha geográfica para o exterior'} className="lg:col-span-3">
