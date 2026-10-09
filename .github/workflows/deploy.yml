@@ -1,26 +1,21 @@
 name: Deploy to GitHub Pages
 
+# O GitHub Pages deste repositório publica a branch gh-pages.
+# Este workflow compila a aplicação na main e envia o resultado (dist/) para a gh-pages.
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
-# Permissões necessárias para publicar no GitHub Pages
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Permite apenas uma execução concorrente
 concurrency:
   group: "pages"
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-and-deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repositório
@@ -38,16 +33,11 @@ jobs:
       - name: Construir aplicação (Vite)
         run: npm run build
 
-      - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v4
+      - name: Publicar na branch gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          enablement: true
-
-      - name: Enviar artefato do build
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: './dist'
-
-      - name: Publicar no GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "deploy: ${{ github.sha }}"
