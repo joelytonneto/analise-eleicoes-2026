@@ -1,0 +1,3702 @@
+{
+  "fonte": "TSE - Tribunal Superior Eleitoral (Resultados Oficiais 2026)",
+  "eleicaoId": "6257",
+  "pleitoId": "3220",
+  "ciclo": "ele2026",
+  "dataGeracao": "05/10/2026",
+  "horaGeracao": "12:51:47",
+  "fase": "Oficial - Concluída",
+  "totalComparecimento": 125275835,
+  "totalAbstencao": 33469244,
+  "totalValidos": 119300788,
+  "totalBrancos": 2300798,
+  "totalNulos": 3669003,
+  "candidatosBrasil": [
+    {
+      "numero": "22",
+      "nome": "FLAVIO BOLSONARO",
+      "partido": "PL",
+      "coligacao": "PARTIDO LIBERAL",
+      "votos": 56104503,
+      "pct": "47.03",
+      "eleito": true,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "13",
+      "nome": "LULA",
+      "partido": "PT",
+      "coligacao": "BRASIL PRONTO PRA MAIS",
+      "votos": 53879538,
+      "pct": "45.16",
+      "eleito": true,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "70",
+      "nome": "ESCRITOR AUGUSTO CURY",
+      "partido": "AVANTE",
+      "coligacao": "BRASIL DOS NOSSOS SONHOS",
+      "votos": 3448569,
+      "pct": "2.89",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "14",
+      "nome": "RENAN SANTOS",
+      "partido": "MISSÃO",
+      "coligacao": "PARTIDO MISSÃO",
+      "votos": 2675887,
+      "pct": "2.24",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "55",
+      "nome": "RONALDO CAIADO",
+      "partido": "PSD",
+      "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+      "votos": 2605148,
+      "pct": "2.18",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "30",
+      "nome": "ZEMA",
+      "partido": "NOVO",
+      "coligacao": "PARTIDO NOVO",
+      "votos": 326488,
+      "pct": "0.27",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "80",
+      "nome": "SAMARA",
+      "partido": "UP",
+      "coligacao": "UNIDADE POPULAR",
+      "votos": 122911,
+      "pct": "0.10",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "16",
+      "nome": "HERTZ DIAS",
+      "partido": "PSTU",
+      "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+      "votos": 43103,
+      "pct": "0.04",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "27",
+      "nome": "CLARIANA BARAO",
+      "partido": "DC",
+      "coligacao": "DEMOCRACIA CRISTÃ",
+      "votos": 40043,
+      "pct": "0.03",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "21",
+      "nome": "EDMILSON COSTA",
+      "partido": "PCB",
+      "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+      "votos": 22693,
+      "pct": "0.02",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "35",
+      "nome": "VETERINÁRIO WILSON GRASSI",
+      "partido": "DEMOCRATA",
+      "coligacao": "DEMOCRATA",
+      "votos": 16881,
+      "pct": "0.01",
+      "eleito": false,
+      "situacao": "Válido"
+    },
+    {
+      "numero": "29",
+      "nome": "RUI COSTA PIMENTA",
+      "partido": "PCO",
+      "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+      "votos": 15024,
+      "pct": "0.01",
+      "eleito": false,
+      "situacao": "Válido"
+    }
+  ],
+  "estados": {
+    "AC": {
+      "uf": "AC",
+      "totalValidos": 469066,
+      "comparecimento": 488330,
+      "abstencao": 125412,
+      "brancos": 5579,
+      "nulos": 13662,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 302807,
+          "pct": "64.56",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 134770,
+          "pct": "28.73",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 13523,
+          "pct": "2.88",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 8594,
+          "pct": "1.83",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 7980,
+          "pct": "1.70",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 573,
+          "pct": "0.12",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 314,
+          "pct": "0.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 215,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 140,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 71,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 40,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 39,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "AL": {
+      "uf": "AL",
+      "totalValidos": 1818856,
+      "comparecimento": 1938428,
+      "abstencao": 503698,
+      "brancos": 33712,
+      "nulos": 85787,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 995459,
+          "pct": "54.73",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 735718,
+          "pct": "40.45",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 42427,
+          "pct": "2.33",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 26851,
+          "pct": "1.48",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 14198,
+          "pct": "0.78",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1345,
+          "pct": "0.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1168,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 636,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 431,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 267,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 246,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 110,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "AP": {
+      "uf": "AP",
+      "totalValidos": 464858,
+      "comparecimento": 476562,
+      "abstencao": 100426,
+      "brancos": 4415,
+      "nulos": 7272,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 212503,
+          "pct": "45.71",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 212278,
+          "pct": "45.67",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 19057,
+          "pct": "4.10",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 11342,
+          "pct": "2.44",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 8304,
+          "pct": "1.79",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 508,
+          "pct": "0.11",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 341,
+          "pct": "0.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 229,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 132,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 62,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 53,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 49,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "AM": {
+      "uf": "AM",
+      "totalValidos": 2170763,
+      "comparecimento": 2234549,
+      "abstencao": 564062,
+      "brancos": 24402,
+      "nulos": 39302,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 1046996,
+          "pct": "48.23",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 976764,
+          "pct": "45.00",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 77531,
+          "pct": "3.57",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 35411,
+          "pct": "1.63",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 28310,
+          "pct": "1.30",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1867,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1781,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 929,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 457,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 291,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 265,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 161,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "BA": {
+      "uf": "BA",
+      "totalValidos": 8560291,
+      "comparecimento": 9053601,
+      "abstencao": 2259151,
+      "brancos": 154936,
+      "nulos": 338123,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 5664771,
+          "pct": "66.17",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 2442585,
+          "pct": "28.53",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 195451,
+          "pct": "2.28",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 122705,
+          "pct": "1.43",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 117518,
+          "pct": "1.37",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 6497,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 4649,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 1791,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 1676,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 1299,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 724,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 625,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "CE": {
+      "uf": "CE",
+      "totalValidos": 5617814,
+      "comparecimento": 5910471,
+      "abstencao": 1086074,
+      "brancos": 103295,
+      "nulos": 189185,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 3555263,
+          "pct": "63.29",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 1756850,
+          "pct": "31.27",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 140524,
+          "pct": "2.50",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 107587,
+          "pct": "1.92",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 45604,
+          "pct": "0.81",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 4310,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 3352,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 1491,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 1071,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 783,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 498,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 481,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "DF": {
+      "uf": "DF",
+      "totalValidos": 1772808,
+      "comparecimento": 1831396,
+      "abstencao": 426924,
+      "brancos": 25362,
+      "nulos": 33169,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 909616,
+          "pct": "51.31",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 675627,
+          "pct": "38.11",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 85076,
+          "pct": "4.80",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 46714,
+          "pct": "2.64",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 45979,
+          "pct": "2.59",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 4915,
+          "pct": "0.28",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 2297,
+          "pct": "0.13",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 828,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 716,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 382,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 334,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 324,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "ES": {
+      "uf": "ES",
+      "totalValidos": 2251078,
+      "comparecimento": 2352282,
+      "abstencao": 639368,
+      "brancos": 43211,
+      "nulos": 57872,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 1233194,
+          "pct": "54.78",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 850028,
+          "pct": "37.76",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 65121,
+          "pct": "2.89",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 53236,
+          "pct": "2.36",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 39097,
+          "pct": "1.74",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 5873,
+          "pct": "0.26",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1973,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 974,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 638,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 388,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 311,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 245,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "GO": {
+      "uf": "GO",
+      "totalValidos": 3827823,
+      "comparecimento": 3971587,
+      "abstencao": 1109003,
+      "brancos": 45643,
+      "nulos": 98014,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 2051888,
+          "pct": "53.60",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 1188880,
+          "pct": "31.06",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 472041,
+          "pct": "12.33",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 54105,
+          "pct": "1.41",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 53849,
+          "pct": "1.41",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 2672,
+          "pct": "0.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 2087,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 668,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 559,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 468,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 346,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 260,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "MA": {
+      "uf": "MA",
+      "totalValidos": 4010439,
+      "comparecimento": 4160343,
+      "abstencao": 1022772,
+      "brancos": 46315,
+      "nulos": 103244,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 2566301,
+          "pct": "63.99",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 1239040,
+          "pct": "30.90",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 84830,
+          "pct": "2.12",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 60387,
+          "pct": "1.51",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 50155,
+          "pct": "1.25",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 4584,
+          "pct": "0.11",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1795,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 1459,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 895,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 475,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 307,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 211,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "MT": {
+      "uf": "MT",
+      "totalValidos": 1993288,
+      "comparecimento": 2052133,
+      "abstencao": 585668,
+      "brancos": 20756,
+      "nulos": 37994,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 1298581,
+          "pct": "65.15",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 581681,
+          "pct": "29.18",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 40019,
+          "pct": "2.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 33170,
+          "pct": "1.66",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 33079,
+          "pct": "1.66",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 2424,
+          "pct": "0.12",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 1869,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1584,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 340,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 239,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 172,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 130,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "MS": {
+      "uf": "MS",
+      "totalValidos": 1490278,
+      "comparecimento": 1541220,
+      "abstencao": 483210,
+      "brancos": 21270,
+      "nulos": 29596,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 873351,
+          "pct": "58.60",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 516855,
+          "pct": "34.68",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 39148,
+          "pct": "2.63",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 31847,
+          "pct": "2.14",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 23291,
+          "pct": "1.56",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 2792,
+          "pct": "0.19",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1291,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 626,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 353,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 332,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 209,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 183,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "MG": {
+      "uf": "MG",
+      "totalValidos": 11976235,
+      "comparecimento": 12637274,
+      "abstencao": 3735098,
+      "brancos": 268302,
+      "nulos": 392176,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 5777548,
+          "pct": "48.24",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 5188936,
+          "pct": "43.33",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 409737,
+          "pct": "3.42",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 247209,
+          "pct": "2.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 230423,
+          "pct": "1.92",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 98407,
+          "pct": "0.82",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 11026,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 4085,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 3411,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 2300,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 1732,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 1421,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "PA": {
+      "uf": "PA",
+      "totalValidos": 4863172,
+      "comparecimento": 5066504,
+      "abstencao": 1195893,
+      "brancos": 54203,
+      "nulos": 148946,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 2427237,
+          "pct": "49.91",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 2163957,
+          "pct": "44.50",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 125172,
+          "pct": "2.57",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 84165,
+          "pct": "1.73",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 51991,
+          "pct": "1.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 3824,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 3064,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 1293,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 1045,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 674,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 442,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 308,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "PB": {
+      "uf": "PB",
+      "totalValidos": 2513747,
+      "comparecimento": 2683988,
+      "abstencao": 564543,
+      "brancos": 52297,
+      "nulos": 117854,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 1541127,
+          "pct": "61.31",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 831377,
+          "pct": "33.07",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 73831,
+          "pct": "2.94",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 42247,
+          "pct": "1.68",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 19511,
+          "pct": "0.78",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1988,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1593,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 627,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 604,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 347,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 274,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 221,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "PR": {
+      "uf": "PR",
+      "totalValidos": 6585243,
+      "comparecimento": 6841457,
+      "abstencao": 1772200,
+      "brancos": 122499,
+      "nulos": 133447,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 3945345,
+          "pct": "59.91",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 2054597,
+          "pct": "31.20",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 205095,
+          "pct": "3.11",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 177434,
+          "pct": "2.69",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 171294,
+          "pct": "2.60",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 17172,
+          "pct": "0.26",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 6731,
+          "pct": "0.10",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 2445,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 2056,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 1195,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 962,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 917,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "PE": {
+      "uf": "PE",
+      "totalValidos": 5601017,
+      "comparecimento": 5911062,
+      "abstencao": 1312388,
+      "brancos": 109491,
+      "nulos": 200416,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 3553971,
+          "pct": "63.45",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 1738043,
+          "pct": "31.03",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 137960,
+          "pct": "2.46",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 85865,
+          "pct": "1.53",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 73176,
+          "pct": "1.31",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 6060,
+          "pct": "0.11",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 2387,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 1114,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 869,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 705,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 457,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 410,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "PI": {
+      "uf": "PI",
+      "totalValidos": 2146394,
+      "comparecimento": 2240883,
+      "abstencao": 463875,
+      "brancos": 28329,
+      "nulos": 66108,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 1523710,
+          "pct": "70.99",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 517028,
+          "pct": "24.09",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 47692,
+          "pct": "2.22",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 32274,
+          "pct": "1.50",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 21629,
+          "pct": "1.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1357,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1099,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 504,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 443,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 319,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 193,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 146,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "RJ": {
+      "uf": "RJ",
+      "totalValidos": 9369700,
+      "comparecimento": 9859802,
+      "abstencao": 2997846,
+      "brancos": 201979,
+      "nulos": 287736,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 4966844,
+          "pct": "53.01",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 3693021,
+          "pct": "39.41",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 247397,
+          "pct": "2.64",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 211843,
+          "pct": "2.26",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 199844,
+          "pct": "2.13",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 21907,
+          "pct": "0.23",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 14186,
+          "pct": "0.15",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 4082,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 3999,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 2854,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 1930,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 1793,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "RN": {
+      "uf": "RN",
+      "totalValidos": 2071898,
+      "comparecimento": 2171013,
+      "abstencao": 488812,
+      "brancos": 33172,
+      "nulos": 65880,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 1237963,
+          "pct": "59.75",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 720493,
+          "pct": "34.77",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 57367,
+          "pct": "2.77",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 35261,
+          "pct": "1.70",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 16407,
+          "pct": "0.79",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1525,
+          "pct": "0.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 1228,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 572,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 405,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 315,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 185,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 177,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "RS": {
+      "uf": "RS",
+      "totalValidos": 6423046,
+      "comparecimento": 6702903,
+      "abstencao": 1819642,
+      "brancos": 148339,
+      "nulos": 131265,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 3573783,
+          "pct": "55.64",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 2294759,
+          "pct": "35.73",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 195296,
+          "pct": "3.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 167558,
+          "pct": "2.61",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 158821,
+          "pct": "2.47",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 18988,
+          "pct": "0.30",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 6632,
+          "pct": "0.10",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 2146,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 2066,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 1043,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 1031,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 923,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "RO": {
+      "uf": "RO",
+      "totalValidos": 968059,
+      "comparecimento": 991080,
+      "abstencao": 274813,
+      "brancos": 9846,
+      "nulos": 13109,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 652988,
+          "pct": "67.45",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 250667,
+          "pct": "25.89",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 25280,
+          "pct": "2.61",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 19187,
+          "pct": "1.98",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 16929,
+          "pct": "1.75",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1318,
+          "pct": "0.14",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 843,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 356,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 174,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 160,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 97,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 60,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "RR": {
+      "uf": "RR",
+      "totalValidos": 325545,
+      "comparecimento": 332772,
+      "abstencao": 68749,
+      "brancos": 2618,
+      "nulos": 4595,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 231322,
+          "pct": "71.06",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 74420,
+          "pct": "22.86",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 8579,
+          "pct": "2.64",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 6623,
+          "pct": "2.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 3639,
+          "pct": "1.12",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 337,
+          "pct": "0.10",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 280,
+          "pct": "0.09",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 168,
+          "pct": "0.05",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 60,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 42,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 41,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 34,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "SC": {
+      "uf": "SC",
+      "totalValidos": 4500897,
+      "comparecimento": 4648159,
+      "abstencao": 1086492,
+      "brancos": 69007,
+      "nulos": 78071,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 3000020,
+          "pct": "66.65",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 1127168,
+          "pct": "25.04",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 134273,
+          "pct": "2.98",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 132795,
+          "pct": "2.95",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 79911,
+          "pct": "1.78",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 16718,
+          "pct": "0.37",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 5049,
+          "pct": "0.11",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 1503,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 1429,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 828,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 643,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 560,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "SP": {
+      "uf": "SP",
+      "totalValidos": 24882948,
+      "comparecimento": 26431992,
+      "abstencao": 7690900,
+      "brancos": 632801,
+      "nulos": 914888,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 12922023,
+          "pct": "51.93",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 9505413,
+          "pct": "38.20",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 892368,
+          "pct": "3.59",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 804310,
+          "pct": "3.23",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 579571,
+          "pct": "2.33",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 94635,
+          "pct": "0.38",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 42532,
+          "pct": "0.17",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 15815,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 10563,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 6129,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 5160,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 4429,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "SE": {
+      "uf": "SE",
+      "totalValidos": 1364196,
+      "comparecimento": 1439082,
+      "abstencao": 301053,
+      "brancos": 24859,
+      "nulos": 49970,
+      "vencedor": "PT",
+      "candidatoVencedor": "LULA",
+      "candidatos": [
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 856019,
+          "pct": "62.75",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 417839,
+          "pct": "30.63",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 38895,
+          "pct": "2.85",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 26651,
+          "pct": "1.95",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 21405,
+          "pct": "1.57",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 1158,
+          "pct": "0.08",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 991,
+          "pct": "0.07",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 457,
+          "pct": "0.03",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 331,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 204,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 138,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 108,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    },
+    "TO": {
+      "uf": "TO",
+      "totalValidos": 930447,
+      "comparecimento": 965196,
+      "abstencao": 216827,
+      "brancos": 8344,
+      "nulos": 26377,
+      "vencedor": "PL",
+      "candidatoVencedor": "FLAVIO BOLSONARO",
+      "candidatos": [
+        {
+          "numero": "22",
+          "nome": "FLAVIO BOLSONARO",
+          "partido": "PL",
+          "coligacao": "PARTIDO LIBERAL",
+          "votos": 469321,
+          "pct": "50.44",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "13",
+          "nome": "LULA",
+          "partido": "PT",
+          "coligacao": "BRASIL PRONTO PRA MAIS",
+          "votos": 404009,
+          "pct": "43.42",
+          "eleito": true,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "70",
+          "nome": "ESCRITOR AUGUSTO CURY",
+          "partido": "AVANTE",
+          "coligacao": "BRASIL DOS NOSSOS SONHOS",
+          "votos": 22434,
+          "pct": "2.41",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "55",
+          "nome": "RONALDO CAIADO",
+          "partido": "PSD",
+          "coligacao": "PARTIDO SOCIAL DEMOCRÁTICO",
+          "votos": 20189,
+          "pct": "2.17",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "14",
+          "nome": "RENAN SANTOS",
+          "partido": "MISSÃO",
+          "coligacao": "PARTIDO MISSÃO",
+          "votos": 12983,
+          "pct": "1.40",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "30",
+          "nome": "ZEMA",
+          "partido": "NOVO",
+          "coligacao": "PARTIDO NOVO",
+          "votos": 595,
+          "pct": "0.06",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "80",
+          "nome": "SAMARA",
+          "partido": "UP",
+          "coligacao": "UNIDADE POPULAR",
+          "votos": 395,
+          "pct": "0.04",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "27",
+          "nome": "CLARIANA BARAO",
+          "partido": "DC",
+          "coligacao": "DEMOCRACIA CRISTÃ",
+          "votos": 171,
+          "pct": "0.02",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "21",
+          "nome": "EDMILSON COSTA",
+          "partido": "PCB",
+          "coligacao": "PARTIDO COMUNISTA BRASILEIRO",
+          "votos": 117,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "16",
+          "nome": "HERTZ DIAS",
+          "partido": "PSTU",
+          "coligacao": "PARTIDO SOCIALISTA  DOS TRABALHADORES UNIFICADO",
+          "votos": 101,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "35",
+          "nome": "VETERINÁRIO WILSON GRASSI",
+          "partido": "DEMOCRATA",
+          "coligacao": "DEMOCRATA",
+          "votos": 67,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        },
+        {
+          "numero": "29",
+          "nome": "RUI COSTA PIMENTA",
+          "partido": "PCO",
+          "coligacao": "PARTIDO DA CAUSA OPERÁRIA",
+          "votos": 65,
+          "pct": "0.01",
+          "eleito": false,
+          "situacao": "Válido"
+        }
+      ]
+    }
+  }
+}
