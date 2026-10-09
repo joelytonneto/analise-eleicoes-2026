@@ -25,3 +25,6 @@ dist-ssr
 
 # OS metadata
 Thumbs.db
+
+# Scratch and raw files
+scratch/*.dat

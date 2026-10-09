@@ -58,8 +58,18 @@ const LOCAIS_ESPECIFICOS = {
       { nome: 'EEFM São João Batista', endereco: 'Rua Deputado João Pontes, 310 - Bairro de Fátima', bairro: 'Bairro de Fátima' }
     ],
     '0114': [
-      { nome: 'UNIFOR - Universidade de Fortaleza', endereco: 'Av. Washington Soares, 1321 - Edson Queiroz', bairro: 'Edson Queiroz' },
-      { nome: 'Colégio Ari de Sá Cavalcante', endereco: 'Av. Washington Soares, 3737 - Sapiranga', bairro: 'Sapiranga' }
+      { 
+        nome: 'Colégio Ari de Sá Cavalcante', 
+        endereco: 'Av. Washington Soares, 3737 - Sapiranga', 
+        bairro: 'Sapiranga',
+        secoesForcadas: ['0027', '0028', '0029', '0030']
+      },
+      { 
+        nome: 'UNIFOR - Universidade de Fortaleza', 
+        endereco: 'Av. Washington Soares, 1321 - Edson Queiroz', 
+        bairro: 'Edson Queiroz',
+        secoesForcadas: ['0001', '0002', '0003', '0004', '0005', '0006']
+      }
     ],
     '0115': [
       { nome: 'EEFM Thomaz Pompeu Sobrinho', endereco: 'Av. Prudente Brasil, 450 - Passaré', bairro: 'Passaré' },
@@ -88,7 +98,7 @@ const LOCAIS_ESPECIFICOS = {
         bairro: 'Parque Dom Pedro',
         lat: -3.9087744,
         lng: -38.5084955,
-        secoesForcadas: ['0393', '0394', '0395', '0396', '0397', '0398', '0399', '0400']
+        secoesForcadas: ['0393', '0396', '0397', '0398', '0400']
       },
       {
         nome: 'EEMTI Raul Tavares Cavalcante',
@@ -276,7 +286,8 @@ export function getLocaisVotacao(uf, municipioInput, centroideLat, centroideLng)
             zona: String(zona).padStart(4, '0'),
             localNome: localNome,
             urnasModelo: realBU?.urnaModelo || (sIdx % 2 === 0 ? 'UE 2022' : 'UE 2020'),
-            aptos: realBU?.cargos?.PRESIDENTE?.aptos || (340 + (sIdx * 6))
+            aptos: realBU?.cargos?.PRESIDENTE?.aptos || (340 + (sIdx * 6)),
+            hasRealBU: !!realBU
           });
         });
       } else {
@@ -285,12 +296,16 @@ export function getLocaisVotacao(uf, municipioInput, centroideLat, centroideLng)
 
         for (let j = 0; j < qtdSecoes; j++) {
           const secaoNum = baseSecaoNum + j;
+          const secPad = String(secaoNum).padStart(4, '0');
+          const lookupKey = `${uf}_${munCdTse}_${String(zona).padStart(4, '0')}_${secPad}`;
+          const realBU = realSectionBUs[lookupKey];
           secoes.push({
-            numero: String(secaoNum).padStart(4, '0'),
+            numero: secPad,
             zona: String(zona).padStart(4, '0'),
             localNome: localNome,
-            urnasModelo: j % 2 === 0 ? 'UE2022' : 'UE2020',
-            aptos: Math.floor(pseudoRandom(s + j * 7) * 120) + 310
+            urnasModelo: realBU?.urnaModelo || (j % 2 === 0 ? 'UE2022' : 'UE2020'),
+            aptos: realBU?.cargos?.PRESIDENTE?.aptos || (Math.floor(pseudoRandom(s + j * 7) * 120) + 310),
+            hasRealBU: !!realBU
           });
         }
       }
@@ -386,130 +401,26 @@ export function getBoletimDeUrna(uf, municipioNome, zona, secaoNum, cargoId = 'P
     }
   }
 
-  // 2. Seção sem BU físico em cache: projeção calibrada com totais municipais oficiais do TSE
-  const seed = ufUpper.charCodeAt(0) * 10000 + parseInt(zona || '1') * 500 + parseInt(secaoNum || '1') * 17 + (turno * 31);
-  const aptos = Math.floor(pseudoRandom(seed) * 80) + 310;
-  const abstencaoPct = 0.1318 + (pseudoRandom(seed + 1) * 0.04 - 0.02);
-  const abstencaoQtd = Math.round(aptos * abstencaoPct);
-  const comparecimentoQtd = aptos - abstencaoQtd;
-
-  const brancos = Math.floor(comparecimentoQtd * (0.016 + pseudoRandom(seed + 2) * 0.01));
-  const nulos = Math.floor(comparecimentoQtd * (0.028 + pseudoRandom(seed + 3) * 0.015));
-  const validos = comparecimentoQtd - brancos - nulos;
-
-  const estadoUf = tseFullData.estados[ufUpper] || tseFullData.estados['CE'] || tseFullData.estados['SP'];
-  let targetCargo = cargoId;
-  if (targetCargo === 'DEPUTADO FEDERAL') targetCargo = 'DEP_FEDERAL';
-  if (targetCargo === 'DEPUTADO ESTADUAL') targetCargo = 'DEP_ESTADUAL';
-
-  const cargoEstData = estadoUf?.cargos[targetCargo];
-
-  let resultadosCandidatos = [];
-
-  // Se for Itaitinga (CE) e Presidente, usar as proporções oficiais apuradas no município pelo TSE
-  if (ufUpper === 'CE' && codigoTse === '13480' && targetCargo === 'PRESIDENTE') {
-    const itaitingaOficialPresidente = [
-      { numero: '13', nome: 'LULA', partido: 'PT', pctBase: 0.5623, cor: '#ef4444' },
-      { numero: '22', nome: 'FLAVIO BOLSONARO', partido: 'PL', pctBase: 0.3738, cor: '#1d4ed8' },
-      { numero: '70', nome: 'ESCRITOR AUGUSTO CURY', partido: 'AVANTE', pctBase: 0.0349, cor: '#10b981' },
-      { numero: '14', nome: 'RENAN SANTOS', partido: 'MISSÃO', pctBase: 0.0195, cor: '#eab308' },
-      { numero: '55', nome: 'RONALDO CAIADO', partido: 'PSD', pctBase: 0.0076, cor: '#0d9488' }
-    ];
-
-    let somaVotos = 0;
-    const candsCalc = itaitingaOficialPresidente.map((c, idx) => {
-      const jitter = (pseudoRandom(seed + idx * 7) - 0.5) * 0.03;
-      const pct = Math.max(0.005, c.pctBase + jitter);
-      const votos = Math.round(validos * pct);
-      somaVotos += votos;
-      return {
-        numero: c.numero,
-        nome: c.nome,
-        partido: c.partido,
-        coligacao: c.partido,
-        votos: votos,
-        cor: c.cor
-      };
-    });
-
-    const diff = validos - somaVotos;
-    candsCalc[0].votos += diff;
-
-    resultadosCandidatos = candsCalc.map(c => ({
-      ...c,
-      pct: ((c.votos / validos) * 100).toFixed(2)
-    })).sort((a, b) => b.votos - a.votos);
-
-  } else if (cargoEstData && cargoEstData.candidatos && cargoEstData.candidatos.length > 0) {
-    const candidatosOficiais = cargoEstData.candidatos.slice(0, 10);
-    let somaVotos = 0;
-
-    const candsDistribuidos = candidatosOficiais.map((cand, idx) => {
-      const basePct = parseFloat(cand.pct) / 100;
-      const jitter = (pseudoRandom(seed + idx * 7) - 0.5) * 0.04;
-      const pctSecao = Math.max(0.005, basePct + jitter);
-      const votosSecao = Math.round(validos * pctSecao);
-      somaVotos += votosSecao;
-
-      return {
-        numero: cand.numero,
-        nome: cand.nome,
-        partido: cand.partido,
-        coligacao: cand.coligacao,
-        votos: votosSecao,
-        eleito: cand.eleito,
-        cor: PARTIDOS_CORES[cand.partido] || '#64748b'
-      };
-    });
-
-    const diff = validos - somaVotos;
-    candsDistribuidos[0].votos += diff;
-
-    resultadosCandidatos = candsDistribuidos.map(c => ({
-      ...c,
-      pct: ((c.votos / validos) * 100).toFixed(2)
-    })).sort((a, b) => b.votos - a.votos);
-
-  } else {
-    resultadosCandidatos = [
-      { numero: '13', nome: 'LULA', partido: 'PT', votos: Math.round(validos * 0.56), pct: '56.00', cor: '#ef4444' },
-      { numero: '22', nome: 'FLAVIO BOLSONARO', partido: 'PL', votos: Math.round(validos * 0.37), pct: '37.00', cor: '#1d4ed8' },
-      { numero: '70', nome: 'ESCRITOR AUGUSTO CURY', partido: 'AVANTE', votos: Math.round(validos * 0.04), pct: '4.00', cor: '#10b981' }
-    ];
-  }
-
-  const hashAssinatura = Array.from({ length: 64 }, (_, i) => 
-    Math.floor(pseudoRandom(seed + i * 13) * 16).toString(16)
-  ).join('');
-
+  // 2. Seção sem BU físico no repositório local:
+  // DIRETRIZ DE TRANSPARÊNCIA: NÃO INVENTAR DADOS!
   return {
+    isOficialTse: false,
+    naoDisponivel: true,
     metadados: {
-      eleicao: (targetCargo === 'PRESIDENTE' || targetCargo === 'DEP_FEDERAL') ? 'Eleição Federal 2026 (ID 6257)' : 'Eleição Estadual 2026 (ID 6259)',
+      eleicao: (targetCargo === 'PRESIDENTE' || targetCargo === 'DEP_FEDERAL') ? 'Eleição Federal Oficial TSE 2026' : 'Eleição Estadual Oficial TSE 2026',
       turno: `${turno}º Turno`,
-      dataApuracao: '04/10/2026 18:32:15',
-      fase: 'Oficial - Divulgação TSE',
+      dataApuracao: 'Pendente de sincronização',
+      fase: 'Microdados Não Sincronizados (.bu.dat pendente)',
       municipio: municipioNome,
       uf: ufUpper,
       zona: zonaPad,
       secao: secaoPad,
-      urnaModelo: parseInt(secaoNum) % 2 === 0 ? 'UE 2022' : 'UE 2020',
-      codigoCarga: `987.${(seed % 899 + 100)}.${(seed % 9999 + 1000)}`,
-      hashAssinatura: hashAssinatura,
+      urnaModelo: 'Aguardando importação do BU',
+      codigoCarga: 'Pendente de sincronização',
+      hashAssinatura: 'Não disponível no cache local',
       assinaturaDigital: `TSE-BU-BR-2026-${ufUpper}-${zonaPad}-${secaoPad}`
     },
-    estatisticas: {
-      aptos,
-      comparecimento: comparecimentoQtd,
-      comparecimentoPct: ((comparecimentoQtd / aptos) * 100).toFixed(2),
-      abstencao: abstencaoQtd,
-      abstencaoPct: ((abstencaoQtd / aptos) * 100).toFixed(2),
-      brancos,
-      brancosPct: ((brancos / comparecimentoQtd) * 100).toFixed(2),
-      nulos,
-      nulosPct: ((nulos / comparecimentoQtd) * 100).toFixed(2),
-      validos,
-      validosPct: ((validos / comparecimentoQtd) * 100).toFixed(2)
-    },
-    candidatos: resultadosCandidatos
+    estatisticas: null,
+    candidatos: []
   };
 }

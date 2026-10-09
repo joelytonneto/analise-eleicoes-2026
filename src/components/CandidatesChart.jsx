@@ -15,12 +15,29 @@ export default function CandidatesChart({
   let totalValidos = 0;
   let subtitulo = '';
 
-  // 1. Nível Seção (Boletim de Urna)
-  if (secao && boletimSecao) {
+  let isSecaoPendente = false;
+
+  // 1. Nível Seção (Boletim de Urna Oficial)
+  if (secao && boletimSecao && !boletimSecao.naoDisponivel && boletimSecao.estatisticas) {
     candidatos = boletimSecao.candidatos;
     totalValidos = boletimSecao.estatisticas.validos;
-    subtitulo = `Boletim de Urna • Seção ${secao.numero} (Zona ${secao.zona})`;
+    subtitulo = `Boletim de Urna Oficial TSE • Seção ${secao.numero} (Zona ${secao.zona})`;
   } 
+  // 1b. Nível Seção com microdados pendentes de download (fallback transparente para o Município)
+  else if (secao && boletimSecao?.naoDisponivel && municipio && estado) {
+    isSecaoPendente = true;
+    const cityKey = `${estado.sigla}_${municipio.codigoTse}`;
+    const cityData = tseFullData.cidades[cityKey];
+    if (cityData && cityData.cargos[cargoAtual]) {
+      const cargoCity = cityData.cargos[cargoAtual];
+      totalValidos = cargoCity.validos;
+      candidatos = cargoCity.candidatos.map(c => ({
+        ...c,
+        cor: PARTIDOS_CORES[c.partido] || '#64748b'
+      }));
+    }
+    subtitulo = `Seção ${secao.numero} (Microdados pendentes) • Apuração Municipal de ${municipio.nome}`;
+  }
   // 2. Nível Município (Dados Oficiais TSE por Cidade)
   else if (municipio && estado) {
     const cityKey = `${estado.sigla}_${municipio.codigoTse}`;
@@ -114,6 +131,19 @@ export default function CandidatesChart({
           </span>
         )}
       </div>
+
+      {/* Aviso de Transparência se a seção estiver pendente */}
+      {isSecaoPendente && (
+        <div className="mb-3.5 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/40 text-amber-900 dark:text-amber-300 text-xs flex items-start gap-2">
+          <span className="shrink-0 text-sm">ℹ️</span>
+          <div>
+            <strong className="block font-semibold">Microdados desta Seção Pendentes:</strong>
+            <span className="text-[11px] leading-relaxed">
+              Diretriz de Transparência (Zero Fabricação): Para garantir 100% de precisão, exibimos a totalização oficial do município no TSE até que o arquivo criptográfico (<code className="font-mono bg-amber-100 dark:bg-amber-900/60 px-1 rounded">.bu.dat</code>) desta urna seja sincronizado.
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Lista de Candidatos */}
       <div className="space-y-2.5 max-h-[520px] overflow-y-auto pr-1">

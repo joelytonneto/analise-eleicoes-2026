@@ -406,6 +406,7 @@ export default function DrillDownPanel({
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                 {localSelecionado.secoes.map((sec) => {
                   const isSelected = secaoSelecionada && secaoSelecionada.numero === sec.numero;
+                  const temBuOficial = sec.hasRealBU;
                   return (
                     <button
                       key={sec.numero}
@@ -413,21 +414,30 @@ export default function DrillDownPanel({
                         onSelectSecao(sec);
                         onOpenSecaoModal();
                       }}
-                      className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 group ${
+                      className={`p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 group relative ${
                         isSelected
                           ? 'bg-emerald-50 dark:bg-emerald-600/20 border-emerald-500 text-emerald-800 dark:text-emerald-300 font-bold shadow-xs'
-                          : 'bg-slate-50/70 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500/60 hover:bg-emerald-50/40 dark:hover:bg-slate-800'
+                          : temBuOficial
+                          ? 'bg-emerald-50/30 dark:bg-emerald-950/20 border-emerald-300/80 dark:border-emerald-500/40 hover:border-emerald-500 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/30'
+                          : 'bg-slate-50/70 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500/60 hover:bg-slate-100/70'
                       }`}
                     >
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                        Seção
-                      </span>
+                      <div className="flex items-center justify-between w-full px-0.5">
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                          Seção
+                        </span>
+                        {temBuOficial && (
+                          <span className="text-[8px] font-bold font-mono px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/40">
+                            ✓ TSE
+                          </span>
+                        )}
+                      </div>
                       <span className="text-sm font-mono tabular-nums font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">
                         {sec.numero}
                       </span>
                       <span className="text-[9px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
                         <FileText className="w-2.5 h-2.5 text-blue-500 dark:text-blue-400" />
-                        Ver BU Oficial
+                        {temBuOficial ? 'BU Oficial' : 'Consultar'}
                       </span>
                     </button>
                   );

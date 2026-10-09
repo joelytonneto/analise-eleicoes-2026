@@ -23,7 +23,7 @@ export default function KpiCards({
   let tituloNivel = `Totalização Oficial Brasil (${cargoAtual})`;
 
   // Nível Seção (Urna individual)
-  if (secao && boletimSecao) {
+  if (secao && boletimSecao && !boletimSecao.naoDisponivel && boletimSecao.estatisticas) {
     aptos = boletimSecao.estatisticas.aptos;
     comparecimentoQtd = boletimSecao.estatisticas.comparecimento;
     comparecimentoPct = boletimSecao.estatisticas.comparecimentoPct;
@@ -31,9 +31,26 @@ export default function KpiCards({
     abstencaoPct = boletimSecao.estatisticas.abstencaoPct;
     validosQtd = boletimSecao.estatisticas.validos;
     validosPct = boletimSecao.estatisticas.validosPct;
-    totalSecoes = '1 (Urna Auditada)';
+    totalSecoes = '1 (Urna Oficial TSE)';
     tituloNivel = `Seção ${secao.numero} • Zona ${secao.zona} • ${cargoAtual}`;
   } 
+  // Nível Seção mas com BU ainda pendente de importação local
+  else if (secao && boletimSecao?.naoDisponivel && municipio && estado) {
+    const cityKey = `${estado.sigla}_${municipio.codigoTse}`;
+    const cityData = tseFullData.cidades[cityKey];
+    const cargoData = cityData?.cargos[cargoAtual];
+    if (cargoData) {
+      comparecimentoQtd = cargoData.comparecimento;
+      abstencaoQtd = cargoData.abstencao;
+      aptos = comparecimentoQtd + abstencaoQtd;
+      comparecimentoPct = ((comparecimentoQtd / aptos) * 100).toFixed(2);
+      abstencaoPct = ((abstencaoQtd / aptos) * 100).toFixed(2);
+      validosQtd = cargoData.validos;
+      validosPct = ((cargoData.validos / comparecimentoQtd) * 100).toFixed(2);
+    }
+    totalSecoes = 'Microdados pendentes';
+    tituloNivel = `Seção ${secao.numero} (BU pendente de download • Totalização de ${municipio.nome})`;
+  }
   // Nível Município
   else if (municipio && estado) {
     const cityKey = `${estado.sigla}_${municipio.codigoTse}`;

@@ -146,12 +146,22 @@ function formatBuDate(jeDate) {
 
 const officialBUs = {};
 
-// Process all bu_*.dat files in scratch
-const files = fs.readdirSync(scratchDir).filter(f => f.startsWith('bu_') && f.endsWith('.dat'));
-console.log(`Found ${files.length} dat files to process:`, files);
+const dirsToScan = [
+  scratchDir,
+  path.join(__dirname)
+];
 
-for (const file of files) {
-  const filePath = path.join(scratchDir, file);
+const allFiles = [];
+for (const d of dirsToScan) {
+  if (fs.existsSync(d)) {
+    const list = fs.readdirSync(d).filter(f => f.startsWith('bu_') && f.endsWith('.dat'));
+    list.forEach(f => allFiles.push({ dir: d, file: f }));
+  }
+}
+console.log(`Found ${allFiles.length} dat files to process across directories.`);
+
+for (const item of allFiles) {
+  const filePath = path.join(item.dir, item.file);
   const buf = fs.readFileSync(filePath);
   const raw = decodeBu(buf);
 

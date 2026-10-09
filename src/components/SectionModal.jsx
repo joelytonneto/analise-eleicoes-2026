@@ -8,7 +8,8 @@ import {
   CheckCircle, 
   Copy, 
   Check,
-  ExternalLink
+  ExternalLink,
+  ShieldAlert
 } from 'lucide-react';
 import { CARGOS } from '../data/brazilStates';
 import { getBoletimDeUrna } from '../data/electoralEngine';
@@ -97,8 +98,9 @@ export default function SectionModal({
                     AUTÊNTICO TSE (.bu.dat)
                   </span>
                 ) : (
-                  <span className="whitespace-nowrap shrink-0 text-[11px] font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30 px-2 py-0.5 rounded-full">
-                    CALIBRADO TSE
+                  <span className="whitespace-nowrap shrink-0 text-[11px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-500/20 dark:text-amber-300 dark:border-amber-500/40 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1.5 shadow-xs">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                    MICRODADOS PENDENTES
                   </span>
                 )}
               </div>
@@ -254,135 +256,204 @@ export default function SectionModal({
             </div>
           </div>
 
-          {bu.isOficialTse && (
-            <div className="flex items-center gap-2.5 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/40 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
-              <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>
-                <strong>100% Validado com o TSE:</strong> Estes números foram extraídos diretamente do arquivo oficial criptográfico de urna (<code className="font-mono bg-emerald-100 dark:bg-emerald-950/80 px-1 py-0.5 rounded text-emerald-900 dark:text-emerald-200">.bu.dat</code>) do Tribunal Superior Eleitoral.
-              </span>
-            </div>
-          )}
-
-          {/* Resumo da Votação / Estatísticas de Comparecimento */}
-          <div>
-            <h5 className="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
-              <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-              Estatísticas da Seção Eleitoral
-            </h5>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
-                <span className="text-[10px] text-slate-500 block">Eleitores Aptos</span>
-                <span className="text-base font-bold text-slate-900 dark:text-white font-mono">{bu.estatisticas.aptos}</span>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
-                <span className="text-[10px] text-slate-500 block">Comparecimento</span>
-                <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 font-mono">
-                  {bu.estatisticas.comparecimento} ({bu.estatisticas.comparecimentoPct}%)
-                </span>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
-                <span className="text-[10px] text-slate-500 block">Abstenção</span>
-                <span className="text-base font-bold text-amber-600 dark:text-amber-400 font-mono">
-                  {bu.estatisticas.abstencao} ({bu.estatisticas.abstencaoPct}%)
-                </span>
-              </div>
-              <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
-                <span className="text-[10px] text-slate-500 block">Votos Válidos</span>
-                <span className="text-base font-bold text-blue-600 dark:text-blue-400 font-mono">
-                  {bu.estatisticas.validos} ({bu.estatisticas.validosPct}%)
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Votação Nominal para o Cargo Selecionado */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h5 className="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
-                <Vote className="w-3.5 h-3.5 text-blue-500" />
-                Votação Nominal: Cargo {cargoVisualizacao}
-              </h5>
-              <span className="text-[11px] text-slate-500">
-                Total de votos computados nesta urna
-              </span>
-            </div>
-
-            <div className="bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
-              {bu.candidatos.map((cand) => (
-                <div key={cand.numero} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition">
-                  <div className="flex items-center gap-3">
-                    <span 
-                      className="w-9 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-xs text-white shadow-xs"
-                      style={{ backgroundColor: cand.cor || '#3b82f6' }}
-                    >
-                      {cand.numero}
+          {bu.naoDisponivel ? (
+            <div className="p-6 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/30 space-y-4">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 text-center sm:text-left">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <h4 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
+                      Microdados Desta Urna Não Sincronizados no Cache Local
+                    </h4>
+                    <span className="text-[10px] font-mono font-bold bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 px-2 py-0.5 rounded border border-amber-300 dark:border-amber-500/30">
+                      DIRETRIZ ZERO FABRICAÇÃO
                     </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-xs text-slate-900 dark:text-white">{cand.nome}</span>
-                        {cand.partido && (
-                          <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded">
-                            {cand.partido}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[10px] text-slate-500">
-                        {cand.coligacao || (cand.vaga ? `Vaga: ${cand.vaga}` : 'Voto Nominal')}
-                      </p>
-                    </div>
                   </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <strong>Compromisso de Fidelidade e Confiabilidade:</strong> Para assegurar que nenhuma informação seja estimada ou inventada, este aplicativo <strong>nunca simula votos</strong>. O arquivo oficial de urna (<code className="font-mono bg-amber-100 dark:bg-amber-900/40 px-1 py-0.5 rounded text-amber-900 dark:text-amber-200">.bu.dat</code>) desta seção ainda não foi baixado para o repositório local.
+                  </p>
+                </div>
+              </div>
 
-                  <div className="text-right">
-                    <div className="font-mono font-bold text-sm text-emerald-600 dark:text-emerald-400">
-                      {cand.votos} votos
-                    </div>
-                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
-                      {cand.pct}% dos válidos
-                    </div>
+              {/* Detalhes de Identificação */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block">Identificação</span>
+                  <span className="text-xs font-bold font-mono text-slate-900 dark:text-white">
+                    Zona {secao.zona} • Seção {secao.numero}
+                  </span>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block">Local de Votação</span>
+                  <span className="text-xs font-semibold text-slate-900 dark:text-white truncate block">
+                    {secao.localNome}
+                  </span>
+                </div>
+                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <span className="text-[10px] text-slate-500 block">Status no TSE</span>
+                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
+                    Consultar base oficial do TSE
+                  </span>
+                </div>
+              </div>
+
+              {/* Botão de Consulta Oficial */}
+              <div className="p-4 bg-white dark:bg-slate-900 rounded-xl border border-emerald-300 dark:border-emerald-500/40 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div>
+                  <h5 className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+                    Auditar Diretamente no Aplicativo Web do TSE
+                  </h5>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Consulte os dados desta urna específica no endereço oficial da Justiça Eleitoral.
+                  </p>
+                </div>
+                <a
+                  href={tseSectionDirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shrink-0 shadow-sm"
+                >
+                  <span>Abrir no App do TSE</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+          ) : (
+            <>
+              {bu.isOficialTse && (
+                <div className="flex items-center gap-2.5 p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-500/40 rounded-xl text-xs text-emerald-800 dark:text-emerald-300">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>
+                    <strong>100% Validado com o TSE:</strong> Estes números foram extraídos diretamente do arquivo oficial criptográfico de urna (<code className="font-mono bg-emerald-100 dark:bg-emerald-950/80 px-1 py-0.5 rounded text-emerald-900 dark:text-emerald-200">.bu.dat</code>) do Tribunal Superior Eleitoral.
+                  </span>
+                </div>
+              )}
+
+              {/* Resumo da Votação / Estatísticas de Comparecimento */}
+              <div>
+                <h5 className="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 tracking-wider mb-2 flex items-center gap-1.5">
+                  <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                  Estatísticas da Seção Eleitoral
+                </h5>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
+                    <span className="text-[10px] text-slate-500 block">Eleitores Aptos</span>
+                    <span className="text-base font-bold text-slate-900 dark:text-white font-mono">{bu.estatisticas?.aptos}</span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
+                    <span className="text-[10px] text-slate-500 block">Comparecimento</span>
+                    <span className="text-base font-bold text-emerald-600 dark:text-emerald-400 font-mono">
+                      {bu.estatisticas?.comparecimento} ({bu.estatisticas?.comparecimentoPct}%)
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
+                    <span className="text-[10px] text-slate-500 block">Abstenção</span>
+                    <span className="text-base font-bold text-amber-600 dark:text-amber-400 font-mono">
+                      {bu.estatisticas?.abstencao} ({bu.estatisticas?.abstencaoPct}%)
+                    </span>
+                  </div>
+                  <div className="bg-slate-50 dark:bg-slate-950 p-2.5 rounded-lg border border-slate-200 dark:border-slate-800 text-center">
+                    <span className="text-[10px] text-slate-500 block">Votos Válidos</span>
+                    <span className="text-base font-bold text-blue-600 dark:text-blue-400 font-mono">
+                      {bu.estatisticas?.validos} ({bu.estatisticas?.validosPct}%)
+                    </span>
                   </div>
                 </div>
-              ))}
+              </div>
 
-              {/* Linhas de Votos Brancos e Nulos */}
-              <div className="p-3 bg-slate-50/70 dark:bg-slate-950/60 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-mono">
-                <span>Votos em Branco:</span>
-                <span className="text-slate-900 dark:text-white font-bold">{bu.estatisticas.brancos} votos ({bu.estatisticas.brancosPct}%)</span>
-              </div>
-              <div className="p-3 bg-slate-50/70 dark:bg-slate-950/60 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-mono">
-                <span>Votos Nulos:</span>
-                <span className="text-slate-900 dark:text-white font-bold">{bu.estatisticas.nulos} votos ({bu.estatisticas.nulosPct}%)</span>
-              </div>
-            </div>
-          </div>
+              {/* Votação Nominal para o Cargo Selecionado */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h5 className="font-bold text-xs uppercase text-slate-500 dark:text-slate-400 tracking-wider flex items-center gap-1.5">
+                    <Vote className="w-3.5 h-3.5 text-blue-500" />
+                    Votação Nominal: Cargo {cargoVisualizacao}
+                  </h5>
+                  <span className="text-[11px] text-slate-500">
+                    Total de votos computados nesta urna
+                  </span>
+                </div>
 
-          {/* Verificação Digital e QR Code */}
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-4">
-            <div className="w-24 h-24 bg-white p-2 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-xs">
-              <QrCode className="w-full h-full text-slate-900" />
-            </div>
+                <div className="bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden divide-y divide-slate-100 dark:divide-slate-800/80">
+                  {bu.candidatos?.map((cand) => (
+                    <div key={cand.numero} className="p-3 flex items-center justify-between gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition">
+                      <div className="flex items-center gap-3">
+                        <span 
+                          className="w-9 h-9 rounded-lg flex items-center justify-center font-mono font-bold text-xs text-white shadow-xs"
+                          style={{ backgroundColor: cand.cor || '#3b82f6' }}
+                        >
+                          {cand.numero}
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-xs text-slate-900 dark:text-white">{cand.nome}</span>
+                            {cand.partido && (
+                              <span className="text-[10px] font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded">
+                                {cand.partido}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-slate-500">
+                            {cand.coligacao || (cand.vaga ? `Vaga: ${cand.vaga}` : 'Voto Nominal')}
+                          </p>
+                        </div>
+                      </div>
 
-            <div className="space-y-1.5 flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                <ShieldCheck className="w-4 h-4" />
-                <span>Urna Auditável • Assinatura Digital ICP-Brasil</span>
+                      <div className="text-right">
+                        <div className="font-mono font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                          {cand.votos} votos
+                        </div>
+                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                          {cand.pct}% dos válidos
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Linhas de Votos Brancos e Nulos */}
+                  <div className="p-3 bg-slate-50/70 dark:bg-slate-950/60 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-mono">
+                    <span>Votos em Branco:</span>
+                    <span className="text-slate-900 dark:text-white font-bold">{bu.estatisticas?.brancos} votos ({bu.estatisticas?.brancosPct}%)</span>
+                  </div>
+                  <div className="p-3 bg-slate-50/70 dark:bg-slate-950/60 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-mono">
+                    <span>Votos Nulos:</span>
+                    <span className="text-slate-900 dark:text-white font-bold">{bu.estatisticas?.nulos} votos ({bu.estatisticas?.nulosPct}%)</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Este boletim pode ser auditado diretamente com o aplicativo oficial "Boletim na Mão" do TSE através do QR Code ao lado.
-              </p>
-              <div className="flex items-center gap-2 pt-1">
-                <code className="text-[10px] font-mono text-slate-600 dark:text-slate-400 truncate bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 flex-1">
-                  SHA256: {bu.metadados.hashAssinatura}
-                </code>
-                <button
-                  onClick={copiarHash}
-                  className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-800 transition"
-                  title="Copiar Hash"
-                >
-                  {copiado ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                </button>
+
+              {/* Verificação Digital e QR Code */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-4">
+                <div className="w-24 h-24 bg-white p-2 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 shadow-xs">
+                  <QrCode className="w-full h-full text-slate-900" />
+                </div>
+
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Urna Auditável • Assinatura Digital ICP-Brasil</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Este boletim pode ser auditado diretamente com o aplicativo oficial "Boletim na Mão" do TSE através do QR Code ao lado.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <code className="text-[10px] font-mono text-slate-600 dark:text-slate-400 truncate bg-white dark:bg-slate-900 px-2 py-1 rounded border border-slate-200 dark:border-slate-800 flex-1">
+                      SHA256: {bu.metadados.hashAssinatura}
+                    </code>
+                    <button
+                      onClick={copiarHash}
+                      className="p-1 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-white dark:bg-slate-900 rounded border border-slate-200 dark:border-slate-800 transition"
+                      title="Copiar Hash"
+                    >
+                      {copiado ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            </>
+          )}
 
           {/* Painel de Auditoria e Comprovação Oficial no TSE */}
           <div className="p-4 rounded-xl bg-gradient-to-br from-blue-50/50 via-slate-50 to-emerald-50/50 dark:from-blue-950/40 dark:via-slate-950 dark:to-emerald-950/30 border border-blue-200 dark:border-blue-500/30 space-y-3">
