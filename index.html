@@ -10,6 +10,7 @@
       try {
         var t = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         if (t === 'dark') document.documentElement.classList.add('dark');
+        if (t === 'sepia' || t === 'contraste') document.documentElement.dataset.theme = t;
       } catch (e) {}
     </script>
   </head>

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Sun, Moon, ShieldCheck, LayoutDashboard, GitCompare, Map as MapIcon, Crosshair, Search, Sparkles, Trophy, Menu, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Sun, Moon, ShieldCheck, LayoutDashboard, GitCompare, Map as MapIcon, Crosshair, Search, Sparkles, Trophy, Menu, X, BookOpen, Contrast, Check } from 'lucide-react';
 import SearchBox from './components/SearchBox';
 import { useRoute, rotas } from './lib/router';
 import BrasilPage from './pages/BrasilPage';
@@ -36,24 +36,80 @@ class Protecao extends React.Component {
   }
 }
 
+const TEMAS = [
+  { id: 'light', label: 'Claro', sub: 'Fundo branco, padrão', icon: Sun },
+  { id: 'dark', label: 'Escuro', sub: 'Para ambientes com pouca luz', icon: Moon },
+  { id: 'sepia', label: 'Sépia', sub: 'Tom de papel, cansa menos a vista', icon: BookOpen },
+  { id: 'contraste', label: 'Alto contraste', sub: 'Preto no branco, bordas fortes', icon: Contrast }
+];
+
+function aplicarTema(t) {
+  const el = document.documentElement;
+  el.classList.toggle('dark', t === 'dark');
+  if (t === 'sepia' || t === 'contraste') el.dataset.theme = t;
+  else delete el.dataset.theme;
+}
+
 function useTheme() {
   const [theme, setTheme] = useState(() => {
     try {
-      return localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const t = localStorage.getItem('theme');
+      if (TEMAS.some(x => x.id === t)) return t;
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     } catch { return 'light'; }
   });
   useEffect(() => {
     try { localStorage.setItem('theme', theme); } catch { /* sem armazenamento */ }
   }, [theme]);
-  // a classe é aplicada antes do novo render, para mapas e cores dos gráficos lerem o tema certo
-  const trocar = t => { document.documentElement.classList.toggle('dark', t === 'dark'); setTheme(t); };
-  if (typeof document !== 'undefined') document.documentElement.classList.toggle('dark', theme === 'dark');
+  // o tema é aplicado antes do novo render, para mapas e cores dos gráficos lerem o tema certo
+  const trocar = t => { aplicarTema(t); setTheme(t); };
+  if (typeof document !== 'undefined') aplicarTema(theme);
   return [theme, trocar];
+}
+
+/** Botão de tema: abre um menu com as quatro opções. */
+function SeletorTema({ theme, setTheme }) {
+  const [aberto, setAberto] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!aberto) return undefined;
+    const fora = e => { if (!ref.current?.contains(e.target)) setAberto(false); };
+    const esc = e => { if (e.key === 'Escape') setAberto(false); };
+    document.addEventListener('pointerdown', fora);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', fora); document.removeEventListener('keydown', esc); };
+  }, [aberto]);
+  const atual = TEMAS.find(t => t.id === theme) || TEMAS[0];
+  const I = atual.icon;
+  return (
+    <div className="relative" ref={ref}>
+      <button className="btn !px-2" onClick={() => setAberto(a => !a)} aria-haspopup="menu" aria-expanded={aberto} aria-label={`Tema: ${atual.label}. Trocar tema`} title="Trocar tema">
+        <I className="w-4 h-4" />
+      </button>
+      {aberto && (
+        <div role="menu" className="absolute right-0 mt-2 z-50 card p-1.5 w-64" style={{ boxShadow: '0 0 0 1px var(--ring), 0 12px 32px rgba(0,0,0,.22)' }}>
+          <div className="px-2.5 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wide muted">Tema de leitura</div>
+          {TEMAS.map(t => {
+            const TI = t.icon;
+            const on = t.id === theme;
+            return (
+              <button key={t.id} role="menuitemradio" aria-checked={on} onClick={() => { setTheme(t.id); setAberto(false); }}
+                className="w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-left" style={on ? { background: 'var(--surface-2)' } : undefined}>
+                <TI className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
+                <span className="flex-1 min-w-0"><span className="block text-sm font-medium">{t.label}</span><span className="block text-xs muted">{t.sub}</span></span>
+                {on && <Check className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function NavLink({ to, ativo, icon: I, children }) {
   return (
-    <a href={to} title={children} aria-label={children} className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium whitespace-nowrap" style={ativo ? { background: 'var(--surface-2)', color: 'var(--ink)' } : { color: 'var(--ink-2)' }}>
+    <a href={to} title={children} aria-label={children} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium whitespace-nowrap" style={ativo ? { background: 'var(--surface-2)', color: 'var(--ink)' } : { color: 'var(--ink-2)' }}>
       <I className="w-4 h-4" /> <span className="hidden xl:inline">{children}</span>
     </a>
   );
@@ -153,12 +209,10 @@ export default function App() {
             {/* ações compactas no celular */}
             <div className="flex items-center gap-1 ml-auto lg:hidden">
               <a href={rotas.auditoria()} className="btn !px-2" aria-label="Auditoria e metodologia" title="Auditoria" style={p0 === 'auditoria' ? { color: 'var(--accent)' } : undefined}><ShieldCheck className="w-4 h-4" /></a>
-              <button className="btn !px-2" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Alternar tema claro/escuro" title="Alternar tema">
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
+              <SeletorTema theme={theme} setTheme={setTheme} />
             </div>
-            {p0 !== 'buscar' ? <div className="flex-1 basis-full lg:basis-auto lg:min-w-[220px] flex justify-center"><SearchBox /></div> : <div className="hidden lg:block flex-1" />}
-            <nav className="hidden lg:flex items-center gap-1">
+            {p0 !== 'buscar' ? <div className="flex-1 basis-full lg:basis-auto lg:min-w-[190px] flex justify-center"><SearchBox /></div> : <div className="hidden lg:block flex-1" />}
+            <nav className="hidden lg:flex items-center gap-0.5">
               <NavLink to={rotas.brasil()} ativo={!p0 || p0 === 'uf'} icon={MapIcon}>Explorar</NavLink>
               <NavLink to={rotas.destaques()} ativo={p0 === 'destaques'} icon={Sparkles}>Destaques</NavLink>
               <NavLink to={rotas.placar()} ativo={p0 === 'placar'} icon={Trophy}>Placar</NavLink>
@@ -166,9 +220,7 @@ export default function App() {
               <NavLink to={rotas.comparar([])} ativo={p0 === 'comparar'} icon={GitCompare}>Comparar</NavLink>
               <NavLink to={rotas.painel()} ativo={p0 === 'painel'} icon={LayoutDashboard}>Painel</NavLink>
               <NavLink to={rotas.auditoria()} ativo={p0 === 'auditoria'} icon={ShieldCheck}>Auditoria</NavLink>
-              <button className="btn !px-2" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label="Alternar tema claro/escuro" title="Alternar tema">
-                {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
+              <SeletorTema theme={theme} setTheme={setTheme} />
             </nav>
           </div>
         </header>
