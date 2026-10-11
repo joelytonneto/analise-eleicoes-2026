@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Trophy, Users, Vote, CircleSlash, UserX, BarChart3, Search, MapPin, Building2, School, UserRound, ChevronRight, FileText, Info, Loader2 } from 'lucide-react';
-import { useAsync, Loading, ErrorBox, Seg, Select, SeloResultado } from '../components/ui';
+import { Trophy, Users, Vote, CircleSlash, UserX, BarChart3, Search, MapPin, Building2, School, UserRound, ChevronRight, FileText, Info, Loader2, ShieldCheck, ExternalLink, Download } from 'lucide-react';
+import { useAsync, Loading, ErrorBox, Seg, Select, SeloResultado, StatusIcon } from '../components/ui';
 import { FotoCandidato, Contador, BarraGrossa, CartaoNumero, CartaoUnidade } from '../components/Vitrine';
 import { interpretar, useMunicipios, useBuscaTexto } from '../components/SearchBox';
 import { loadBrasil, loadUf, loadMun, loadDep, UF_NOMES, cargosDaUf, cargoNome, validosSt, nulosSt, secoesDoMunicipio, agrupar, S } from '../lib/data';
@@ -8,20 +8,23 @@ import { carregarCandidatos, eleitoOuTurno2, subLocal, subCandidato, hrefCandida
 import { corPorIndice, OUTROS } from '../lib/colors';
 import { fmt, fmtPct, pct, titulo, pad, semAcento } from '../lib/format';
 import { rotas, setQuery } from '../lib/router';
-import { baixarBoletim } from '../lib/tse';
+import { baixarBoletim, urlPortalSecao } from '../lib/tse';
 
 // ---------------------------------------------------------------- votos de deputado por urna (boletins de urna do TSE)
 // O TSE não publica o voto de cada deputado por zona, local ou seção na totalização: esse dado está só no
 // boletim de urna (BU). Para esses recortes o Placar baixa os BUs do TSE e soma os votos, como a página da seção.
 const LIMITE_AUTOMATICO = 80; // acima disso de urnas, a leitura começa só quando a pessoa pede
-const CARGOS_DEP = [6, 7, 8];
 const cacheBU = new Map();
-function lerVotosDeputados(uf, cd, z, s) {
+/** Resumo do BU oficial de uma urna, por cargo, com os endereços dos arquivos no TSE. */
+function lerBoletim(uf, cd, z, s) {
   const k = `${uf}-${cd}-${z}-${s}`;
   if (!cacheBU.has(k)) {
     cacheBU.set(k, baixarBoletim(uf, cd, z, s).then(r => {
-      const o = {};
-      for (const cg of CARGOS_DEP) if (r.resumo[cg]) o[cg] = { votos: r.resumo[cg].votos, nominais: r.resumo[cg].nominais, legenda: r.resumo[cg].legenda };
+      const o = { cargos: {}, urlBU: r.urlBU, urlAux: r.urlAux };
+      for (const b of Object.values(r.resumo)) {
+        if (b.codigoCargo == null) continue;
+        o.cargos[b.codigoCargo] = { aptos: b.aptos, comparecimento: b.comparecimento, nominais: b.nominais, legenda: b.legenda, brancos: b.brancos, nulos: b.nulos, votos: b.votos };
+      }
       return o;
     }).catch(e => { cacheBU.delete(k); throw e; }));
   }
@@ -40,7 +43,7 @@ function useBoletins(uf, cd, urnas, ativo) {
     const trabalhador = async () => {
       while (vivo && i < urnas.length) {
         const x = urnas[i++];
-        try { res.set(`${x.z}-${x.s}`, await lerVotosDeputados(uf, cd, x.z, x.s)); } catch { falhas++; }
+        try { res.set(`${x.z}-${x.s}`, await lerBoletim(uf, cd, x.z, x.s)); } catch { falhas++; }
         feitos++;
         if (feitos === urnas.length || Date.now() - ultimo > 250) { ultimo = Date.now(); publicar(); }
       }
@@ -173,6 +176,68 @@ function BuscaLugar({ cargo }) {
   );
 }
 
+/**
+ * Conferência da seção com o boletim de urna (BU) oficial baixado do TSE: cada número da tela
+ * comparado com o arquivo da urna, e links para conferir por conta própria no portal e no arquivo.
+ */
+function ConferenciaTSE({ uf, cd, z, s, cargo, prop, st, lista, bu, carregando, falhou, auditoria }) {
+  const b = bu?.cargos?.[cargo];
+  const linhas = [];
+  if (b) {
+    const add = (item, placar, oficial) => linhas.push({ item, placar, oficial, ok: placar === oficial });
+    add('Eleitores aptos', st[S.aptos], b.aptos);
+    add('Comparecimento', st[S.comp], b.comparecimento);
+    add('Votos nominais', st[S.nom], b.nominais);
+    if (prop) add('Votos de legenda', st[S.leg], b.legenda);
+    add('Brancos', st[S.br], b.brancos);
+    add('Nulos', st[S.nu], b.nulos);
+    if (!prop) for (const c of lista || []) add(`${c.nome} (${c.n})`, c.votos, b.votos[c.n] || 0);
+  }
+  const div = linhas.filter(x => !x.ok);
+  const link = 'inline-flex items-center gap-1.5 link font-medium';
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <span className="w-9 h-9 rounded-xl grid place-items-center shrink-0" style={{ background: 'color-mix(in srgb, var(--ok) 14%, transparent)', color: 'var(--ok)' }}><ShieldCheck className="w-5 h-5" /></span>
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold">Conferir com o TSE</div>
+          <div className="text-sm ink-2">
+            {carregando && !b ? <span className="inline-flex items-center gap-1.5"><Loader2 className="w-4 h-4 animate-spin" /> Baixando o boletim de urna oficial desta seção no site do TSE…</span>
+              : !b ? <span style={{ color: 'var(--bad)' }}>{falhou ? 'Não foi possível baixar o boletim de urna agora. Use os links abaixo para conferir direto no TSE.' : 'O boletim de urna não traz este cargo.'}</span>
+              : !div.length ? <span className="inline-flex items-start gap-1.5"><StatusIcon ok /> <span>Os <b>{linhas.length}</b> números desta tela para {cargoNome(cargo)} conferem com o boletim de urna oficial desta seção{prop ? ' (os votos por deputado foram lidos desse mesmo boletim)' : ''}.</span></span>
+              : <span className="inline-flex items-start gap-1.5"><StatusIcon ok={false} /> <span><b>{div.length}</b> número(s) diferente(s) do boletim de urna: {div.map(x => x.item).join(', ')}.</span></span>}
+          </div>
+        </div>
+      </div>
+      {linhas.length > 0 && (
+        <details className="text-sm">
+          <summary className="cursor-pointer muted text-xs">Ver a comparação item por item</summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr className="text-xs muted text-left"><th className="py-1 pr-3 font-medium">Item</th><th className="py-1 pr-3 font-medium text-right">Placar</th><th className="py-1 pr-3 font-medium text-right">Boletim de urna</th><th className="py-1 font-medium" /></tr></thead>
+              <tbody>
+                {linhas.map(x => (
+                  <tr key={x.item} style={{ boxShadow: '0 -1px 0 var(--grid)' }}>
+                    <td className="py-1 pr-3">{x.item}</td>
+                    <td className="py-1 pr-3 text-right num">{fmt(x.placar)}</td>
+                    <td className="py-1 pr-3 text-right num">{fmt(x.oficial)}</td>
+                    <td className="py-1"><StatusIcon ok={x.ok} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+      <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+        <a className={link} href={urlPortalSecao(uf, cd, z, s, cargo)} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4" /> Abrir esta seção no portal do TSE</a>
+        {bu?.urlBU && <a className={link} href={bu.urlBU} target="_blank" rel="noreferrer"><Download className="w-4 h-4" /> Boletim de urna (arquivo oficial)</a>}
+        <a className={link} href={auditoria}><FileText className="w-4 h-4" /> Auditoria completa da urna</a>
+      </div>
+    </div>
+  );
+}
+
 const ORDENS = [
   { value: 'aptos', label: 'Mais eleitores' },
   { value: 'comp', label: 'Comparecimento' },
@@ -276,7 +341,7 @@ export default function PlacarPage({ query }) {
     const somarBU = (secs, res) => {
       const soma = new Map();
       for (const x of secs) {
-        const b = res.get(`${x.z}-${x.s}`)?.[cargo];
+        const b = res.get(`${x.z}-${x.s}`)?.cargos[cargo];
         if (b) for (const [n, q] of Object.entries(b.votos)) soma.set(+n, (soma.get(+n) || 0) + q);
       }
       return soma;
@@ -351,7 +416,7 @@ export default function PlacarPage({ query }) {
         const [agg] = agrupar(sel.map(x => ({ ...x, z: 0, local: { n: 0 } })), 'zona');
         st = agg?.st[cargo];
         lista = prop ? null : agg ? deVetor(agg.v[cargo]) : [];
-        if (prop) urnas = sel.filter(x => x.st?.[cargo]);
+        if (prop || nivel === 'secao') urnas = sel.filter(x => x.st?.[cargo]);
         if (nivel === 'zona') {
           filhos = agrupar(sel, 'local').filter(u => u.st[cargo]).map(cartaoLocal);
           extra.sub = `${fmt(new Set(sel.map(x => x.local?.n)).size)} locais · ${fmt(agg?.nSecoes || 0)} seções · ${nomeMun} – ${uf}`;
@@ -382,7 +447,7 @@ export default function PlacarPage({ query }) {
     if (!urnas || !bus.feitos) return null;
     const soma = ctx.somarBU(urnas, bus.res);
     let nominaisBU = 0;
-    for (const x of urnas) nominaisBU += bus.res.get(`${x.z}-${x.s}`)?.[cargo]?.nominais || 0;
+    for (const x of urnas) nominaisBU += bus.res.get(`${x.z}-${x.s}`)?.cargos[cargo]?.nominais || 0;
     const lista = ctx.listaBU(soma).sort((a, b) => b.votos - a.votos);
     const filhos = ctx.filhos.map(f => (f._secoes ? { ...f, ...ctx.liderBU(f._secoes, bus.res, f._st) } : f));
     return { lista, filhos, nominaisBU };
@@ -497,7 +562,11 @@ export default function PlacarPage({ query }) {
         <CartaoNumero icon={UserX} rotulo="Abstenção" valor={st[S.abst]} sub={`${fmtPct1(pct(st[S.abst], st[S.aptos]))} dos aptos`} cor="#eb6834" />
       </div>
 
-      {urnas && !bus.pronto && (
+      {nivel === 'secao' && extra.sec && (
+        <ConferenciaTSE uf={uf} cd={cd} z={z} s={extra.sec.s} cargo={cargo} prop={prop} st={st} lista={lista}
+          bu={bus.res.get(`${z}-${extra.sec.s}`)} carregando={!bus.pronto} falhou={bus.falhas > 0} auditoria={analise} />
+      )}
+      {urnas && prop && !bus.pronto && (
         <div className="card p-4 text-sm flex gap-3"><Info className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
           <div className="min-w-0 flex-1 space-y-2">
             <div>
@@ -514,7 +583,7 @@ export default function PlacarPage({ query }) {
       {urnas && !urnas.length && (
         <ErrorBox>Não há urna com votação de {cargoNome(cargo)} neste recorte.</ErrorBox>
       )}
-      {viaBU && (
+      {viaBU && prop && (
         <p className="text-xs muted flex items-start gap-1.5">
           <FileText className="w-3.5 h-3.5 shrink-0 mt-0.5" />
           <span>
