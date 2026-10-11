@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { fmt, fmtPct } from '../lib/format';
+import { SeloResultado } from './ui';
 
 export function useWidth() {
   const ref = useRef(null);
@@ -46,11 +47,9 @@ export function CandidateBars({ itens, total, max = 12, compacto = false, mostra
             <div className="flex items-baseline justify-between gap-2 text-sm">
               <div className="min-w-0 truncate sm:whitespace-nowrap">
                 <span className="inline-block w-2.5 h-2.5 rounded-sm mr-1.5 align-middle" style={{ background: c.cor }} />
-                <span className="font-medium">{c.nome}</span>
+                {c.href ? <a className="font-medium hover:underline" href={c.href}>{c.nome}</a> : <span className="font-medium">{c.nome}</span>}
                 {c.partido && <span className="muted text-xs ml-1">{c.partido}{mostrarNumero && typeof c.n === 'number' ? ` · ${c.n}` : ''}</span>}
-                {c.resultado && /eleito|2º turno/i.test(c.resultado) && !/não eleito/i.test(c.resultado) && (
-                  <span className="chip ml-1.5" style={{ fontSize: 10 }}>{c.resultado}</span>
-                )}
+                {c.resultado && <SeloResultado resultado={c.resultado} className="ml-1.5" />}
               </div>
               <div className="shrink-0 num text-right">
                 <span className="font-semibold">{fmtPct(p)}</span>

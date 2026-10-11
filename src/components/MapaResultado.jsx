@@ -8,10 +8,10 @@ import { fmtPct } from '../lib/format';
  * Mapa coroplético (geo + chaveFeature) ou de pontos (unidades com lat/lng) com métrica selecionável.
  * unidades: [{ key, nome, st, v, lat?, lng?, onClick? }]
  */
-export default function MapaResultado({ unidades, candRef, cargo, geo, chaveFeature, height = 440, pontos = false, metricaInicial = 'vencedor', raio }) {
+export default function MapaResultado({ unidades, candRef, cargo, geo, chaveFeature, height = 440, pontos = false, metricaInicial = 'vencedor', raio, filtroOpcoes }) {
   const [metrica, setMetrica] = useState(metricaInicial);
-  const ops = useMemo(() => opcoesMetrica(candRef, cargo), [candRef, cargo]);
-  const met = ops.some(o => o.value === metrica) ? metrica : 'vencedor';
+  const ops = useMemo(() => opcoesMetrica(candRef, cargo).filter(o => !filtroOpcoes || filtroOpcoes(o)), [candRef, cargo, filtroOpcoes]);
+  const met = ops.some(o => o.value === metrica) ? metrica : ops[0]?.value || 'vencedor';
   const { cor, rotulo, legenda } = useMemo(() => colorir(met, unidades, candRef, cargo), [met, unidades, candRef, cargo]);
   const porChave = useMemo(() => new Map(unidades.map(u => [u.key, u])), [unidades]);
 

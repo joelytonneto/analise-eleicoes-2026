@@ -1,6 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ShieldCheck, Crosshair } from 'lucide-react';
-import { useAsync, Card, Loading, ErrorBox } from '../components/ui';
+import { useAsync, Card, Loading, ErrorBox, Seg, useIsMobile } from '../components/ui';
+import { RankBars } from '../components/charts';
+import { vencedor } from '../lib/metricasMapa';
+import { mapaCores } from '../lib/colors';
 import { Indicadores, ComposicaoVotos, ResultadoCandidatos } from '../components/Resultado';
 import MapaResultado from '../components/MapaResultado';
 import DataTable from '../components/DataTable';
@@ -28,6 +31,71 @@ export function SeloAuditoria() {
   );
 }
 
+const abstencao = st => pct(st[S.abst], st[S.aptos]);
+
+/** Abstenção (eleitores aptos que não compareceram) em cada UF, com o mais votado para presidente. */
+function AbstencaoPorUf({ brasil, candRef }) {
+  const [ordem, setOrdem] = useState('desc');
+  const [todos, setTodos] = useState(false);
+  const mobile = useIsMobile();
+  const cores = mapaCores(candRef);
+  const ufs = brasil.ufs.filter(u => u.uf !== 'ZZ');
+  const ext = brasil.ufs.find(u => u.uf === 'ZZ');
+  const itens = ufs
+    .map(u => {
+      const w = vencedor(u.v[1], candRef);
+      return {
+        key: u.uf, label: u.nome, value: abstencao(u.st[1]),
+        sub: mobile ? w?.nome : `${fmt(u.st[1][S.abst])} de ${fmt(u.st[1][S.aptos])}${w ? ` · mais votado: ${w.nome}` : ''}`,
+        onClick: () => { window.location.hash = rotas.uf(u.uf); }
+      };
+    })
+    .sort((a, b) => (ordem === 'desc' ? b.value - a.value : a.value - b.value));
+  const max = mobile && !todos ? 10 : itens.length;
+
+  // abstenção somada (ponderada pelo eleitorado) nas UFs em que cada candidato foi o mais votado
+  const grupos = new Map();
+  for (const u of ufs) {
+    const w = vencedor(u.v[1], candRef);
+    if (!w) continue;
+    const g = grupos.get(+w.n) || { c: w, abst: 0, aptos: 0, ufs: [] };
+    g.abst += u.st[1][S.abst]; g.aptos += u.st[1][S.aptos]; g.ufs.push(u.uf);
+    grupos.set(+w.n, g);
+  }
+  const semExt = ufs.reduce((a, u) => [a[0] + u.st[1][S.abst], a[1] + u.st[1][S.aptos]], [0, 0]);
+
+  return (
+    <Card
+      title="Abstenção por estado"
+      subtitle={`% dos eleitores aptos que não compareceram${mobile ? ' (ao lado, o mais votado para presidente)' : ''} · Brasil ${fmtPct(abstencao(brasil.total.st[1]))}${ext ? ` · exterior ${fmtPct(abstencao(ext.st[1]))}` : ''}`}
+      actions={<Seg size="xs" value={ordem} onChange={setOrdem} options={[{ value: 'desc', label: 'Maior abstenção' }, { value: 'asc', label: 'Menor abstenção' }]} />}
+    >
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2">
+          <RankBars itens={itens} format={v => fmtPct(v)} max={max} />
+          {mobile && itens.length > 10 && (
+            <button className="btn w-full justify-center mt-3" onClick={() => setTodos(t => !t)}>{todos ? 'Mostrar só os 10 primeiros' : `Ver todos os ${itens.length} estados`}</button>
+          )}
+        </div>
+        <div className="space-y-3">
+          <h3 className="text-xs font-medium muted">Abstenção somada nas UFs em que cada candidato foi o mais votado para presidente</h3>
+          {[...grupos.values()].sort((a, b) => b.ufs.length - a.ufs.length).map(g => (
+            <div key={g.c.n} className="rounded-lg p-3" style={{ background: 'var(--surface-2)' }}>
+              <div className="flex items-baseline justify-between gap-2 text-sm">
+                <span className="flex items-center gap-1.5 min-w-0"><span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cores.get(+g.c.n) }} /><span className="truncate font-medium">{g.c.nome}</span></span>
+                <span className="num font-semibold">{fmtPct(pct(g.abst, g.aptos))}</span>
+              </div>
+              <div className="text-xs ink-2 mt-1">{g.ufs.length} UFs · {fmt(g.abst)} abstenções em {fmt(g.aptos)} aptos</div>
+              <div className="text-xs muted mt-0.5 break-words">{[...g.ufs].sort().join(', ')}</div>
+            </div>
+          ))}
+          <p className="text-xs muted">27 UFs sem o exterior: {fmtPct(pct(semExt[0], semExt[1]))}. Abstenção = aptos − comparecimento (dados do TSE, cargo Presidente). Abra uma UF e escolha “% abstenção” no mapa para ver por município.</p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export default function BrasilPage() {
   const { data, loading, error } = useAsync(() => Promise.all([loadBrasil(), loadGeoBrasil()]), []);
   const brasil = data?.[0], geo = data?.[1];
@@ -52,6 +120,7 @@ export default function BrasilPage() {
     { key: 'sec', label: 'Seções', value: r => r.nSecoes, align: 'right', render: r => fmt(r.nSecoes) },
     { key: 'apt', label: 'Aptos', value: r => r.st[1][S.aptos], align: 'right', render: r => fmt(r.st[1][S.aptos]) },
     { key: 'comp', label: '% Comparec.', value: r => pct(r.st[1][S.comp], r.st[1][S.aptos]), align: 'right', render: r => fmtPct(pct(r.st[1][S.comp], r.st[1][S.aptos])) },
+    { key: 'abst', label: '% Abstenção', value: r => abstencao(r.st[1]), align: 'right', render: r => fmtPct(abstencao(r.st[1])) },
     ...candRef.slice(0, 4).map((c, i) => ({
       key: `c${c.n}`, label: `% ${c.nome}`, align: 'right',
       value: r => pct(r.v[1][i], validosSt(r.st[1])), render: r => fmtPct(pct(r.v[1][i], validosSt(r.st[1])))
@@ -83,6 +152,7 @@ export default function BrasilPage() {
           <MapaResultado unidades={unidades} candRef={candRef} cargo={1} geo={geo} chaveFeature={f => IBGE_UF[f.properties.codarea]} height={460} />
         </Card>
       </div>
+      <AbstencaoPorUf brasil={brasil} candRef={candRef} />
       <Card title="Resultados por UF" subtitle="Percentuais de candidatos sobre votos válidos; clique na linha para abrir a UF">
         <DataTable linhas={brasil.ufs} colunas={colunas} rowKey={r => r.uf} ordemInicial={{ key: 'apt', dir: 'desc' }} porPagina={30} nomeArquivo="presidente-por-uf" onRowClick={r => { window.location.hash = rotas.uf(r.uf); }} />
       </Card>

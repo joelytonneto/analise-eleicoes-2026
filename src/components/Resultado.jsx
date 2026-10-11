@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Seg, Stat } from './ui';
 import { CandidateBars, StackBar } from './charts';
 import { cargosDaUf, CARGOS } from '../lib/data';
 import { metricas } from '../lib/resultados';
 import { fmt, fmtPct } from '../lib/format';
-import { setQuery } from '../lib/router';
+import { setQuery, rotas } from '../lib/router';
+import { eleitoOuTurno2, situacao } from '../lib/busca';
 
 export function useCargo(query, uf) {
   const disp = uf ? cargosDaUf(uf) : CARGOS.filter(c => c.id === 1);
@@ -51,14 +52,37 @@ export function ComposicaoVotos({ st, cargo }) {
   );
 }
 
-export function ResultadoCandidatos({ itens, st, cargo, max = 12 }) {
+const rotuloEleitos = lista => {
+  const e = lista.some(c => situacao(c.resultado) === 'eleito');
+  const t = lista.some(c => situacao(c.resultado) === 'turno2');
+  return e && t ? 'Eleitos e 2º turno' : e ? 'Só eleitos' : 'Só 2º turno';
+};
+
+/**
+ * Resultado por candidato. uf: UF do escopo (liga cada nome à página do candidato);
+ * oferece "Só eleitos" quando o TSE já proclamou eleitos (ou 2º turno) entre os itens.
+ */
+export function ResultadoCandidatos({ itens, st, cargo, max = 12, uf }) {
+  const [soEleitos, setSoEleitos] = useState(false);
   const m = metricas(st, cargo);
   if (!itens?.length) return <div className="text-sm muted">Sem votos nominais registrados.</div>;
-  const validos = itens.filter(c => !c.votoValido);
+  const ufCand = +cargo === 1 ? 'BR' : uf;
+  const comLink = c => (ufCand && typeof c.n === 'number' ? { ...c, href: rotas.candidato(ufCand, cargo, c.n) } : c);
+  const validos = itens.filter(c => !c.votoValido).map(comLink);
   const invalidos = itens.filter(c => c.votoValido && c.votos > 0);
+  const eleitos = validos.filter(c => eleitoOuTurno2(c.resultado));
+  const lista = soEleitos ? eleitos : validos;
   return (
     <div className="space-y-4">
-      <CandidateBars itens={validos} total={m?.validos} max={max} />
+      {eleitos.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <Seg size="xs" value={soEleitos ? 'e' : 't'} onChange={v => setSoEleitos(v === 'e')} options={[
+            { value: 't', label: `Todos (${validos.length})` },
+            { value: 'e', label: `${rotuloEleitos(eleitos)} (${eleitos.length})` }
+          ]} />
+        </div>
+      )}
+      <CandidateBars key={soEleitos ? 'e' : 't'} itens={lista} total={m?.validos} max={soEleitos ? Math.max(max, lista.length) : max} />
       {invalidos.length > 0 && (
         <div className="text-xs rounded-lg p-2.5" style={{ background: 'var(--surface-2)' }}>
           <div className="font-medium mb-1">Votos não computados como válidos pelo TSE</div>

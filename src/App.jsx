@@ -10,7 +10,29 @@ import CompararPage from './pages/CompararPage';
 import PainelPage from './pages/PainelPage';
 import AuditoriaPage from './pages/AuditoriaPage';
 import LocalizarPage from './pages/LocalizarPage';
+import BuscarPage from './pages/BuscarPage';
+import CandidatoPage from './pages/CandidatoPage';
 import { ComparacaoProvider, BandejaComparacao } from './components/Comparacao';
+
+/** Rede de segurança: um erro de renderização mostra um aviso em vez de apagar o app inteiro. */
+class Protecao extends React.Component {
+  constructor(p) { super(p); this.state = { erro: null }; }
+  static getDerivedStateFromError(erro) { return { erro }; }
+  componentDidCatch(erro, info) { console.error(erro, info?.componentStack); }
+  render() {
+    if (!this.state.erro) return this.props.children;
+    return (
+      <div className="card p-4 text-sm space-y-3 max-w-xl">
+        <div className="font-medium" style={{ color: 'var(--bad)' }}>Não foi possível exibir esta tela.</div>
+        <div className="ink-2 break-words">{String(this.state.erro?.message || this.state.erro)}</div>
+        <div className="flex flex-wrap gap-2">
+          <button className="btn btn-primary" onClick={() => this.setState({ erro: null })}>Tentar de novo</button>
+          <a className="btn" href={rotas.brasil()}>Ir para o início</a>
+        </div>
+      </div>
+    );
+  }
+}
 
 function useTheme() {
   const [theme, setTheme] = useState(() => {
@@ -39,7 +61,7 @@ function NavLink({ to, ativo, icon: I, children }) {
 function NavInferior({ p0 }) {
   const itens = [
     { to: rotas.brasil(), ativo: !p0 || p0 === 'uf', icon: MapIcon, label: 'Explorar' },
-    { acao: true, icon: Search, label: 'Buscar' },
+    { to: rotas.buscar(), ativo: p0 === 'buscar', icon: Search, label: 'Buscar' },
     { to: rotas.localizar(), ativo: p0 === 'localizar', icon: Crosshair, label: 'Localizar' },
     { to: rotas.comparar([]), ativo: p0 === 'comparar', icon: GitCompare, label: 'Comparar' },
     { to: rotas.painel(), ativo: p0 === 'painel', icon: LayoutDashboard, label: 'Painel' }
@@ -82,6 +104,8 @@ export default function App() {
   else if (p0 === 'painel') page = <PainelPage query={route.query} />;
   else if (p0 === 'auditoria') page = <AuditoriaPage />;
   else if (p0 === 'localizar') page = <LocalizarPage query={route.query} />;
+  else if (p0 === 'buscar') page = <BuscarPage query={route.query} />;
+  else if (p0 === 'candidato' && ps.length === 3) page = <CandidatoPage uf={ps[0].toUpperCase()} cargo={+ps[1]} n={+ps[2]} />;
   else page = <div className="card p-6">Página não encontrada. <a className="link" href="#/">Voltar ao início</a></div>;
 
   return (
@@ -103,7 +127,7 @@ export default function App() {
                 {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
-            <div className="flex-1 basis-full lg:basis-auto lg:min-w-[220px] flex justify-center"><SearchBox /></div>
+            {p0 !== 'buscar' ? <div className="flex-1 basis-full lg:basis-auto lg:min-w-[220px] flex justify-center"><SearchBox /></div> : <div className="hidden lg:block flex-1" />}
             <nav className="hidden lg:flex items-center gap-1">
               <NavLink to={rotas.brasil()} ativo={!p0 || p0 === 'uf'} icon={MapIcon}>Explorar</NavLink>
               <NavLink to={rotas.localizar()} ativo={p0 === 'localizar'} icon={Crosshair}>Localizar urna</NavLink>
@@ -117,7 +141,7 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-5 pb-8 lg:pb-28">{page}</main>
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-5 pb-8 lg:pb-28"><Protecao key={route.path}>{page}</Protecao></main>
 
         <footer className="text-xs muted py-6 px-4 pb-40 lg:pb-6" style={{ boxShadow: '0 -1px 0 var(--ring)' }}>
           <div className="max-w-7xl mx-auto flex flex-wrap gap-x-6 gap-y-2 justify-between">

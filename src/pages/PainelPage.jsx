@@ -291,7 +291,7 @@ function Widget({ w, i, total, cfg, cat, linhas, dados, onChange, onRemove, onMo
   else if (w.tipo === 'kpis') {
     corpo = <div className="space-y-3"><Indicadores st={agregado.st} cargo={cfg.cargo} extra={[`${fmt(linhas.length)} ${NIVEIS[cfg.nivel].toLowerCase()}`]} /><ComposicaoVotos st={agregado.st} cargo={cfg.cargo} /></div>;
   } else if (w.tipo === 'resultado') {
-    corpo = <ResultadoCandidatos itens={itensDeVetor(agregado.v, dados.candRef)} st={agregado.st} cargo={cfg.cargo} />;
+    corpo = <ResultadoCandidatos itens={itensDeVetor(agregado.v, dados.candRef)} st={agregado.st} cargo={cfg.cargo} uf={cfg.uf} />;
   } else if (w.tipo === 'ranking') {
     const dir = w.dir || 'desc';
     controles = <>{seletor(w.metrica, 'metrica')}<Seg size="xs" value={dir} onChange={v => onChange({ dir: v })} options={[{ value: 'desc', label: 'Maiores' }, { value: 'asc', label: 'Menores' }]} /><Select value={w.n || 15} onChange={v => onChange({ n: +v })} className="!py-1 text-xs">{[10, 15, 20, 25, 50].map(n => <option key={n} value={n}>Top {n}</option>)}</Select></>;

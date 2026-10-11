@@ -127,3 +127,7 @@ export function agrupar(secoes, chave) {
   }
   return [...g.values()];
 }
+
+// Índices da busca (gerados por scripts/data/indices-busca.mjs)
+export const loadCandidatosIndex = () => load(`${BASE}busca/candidatos.json`);
+export const loadLocaisUf = uf => load(`${BASE}busca/locais/${uf}.json`);

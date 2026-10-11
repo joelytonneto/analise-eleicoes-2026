@@ -129,7 +129,7 @@ function AbaResultado({ uf, cd, cargo, st, candRef, m, dep, depData, partidos, f
           title={`Resultado · ${cargoNome(cargo)}${filtrado ? ' (filtro aplicado)' : ''}`}
           subtitle={<>Soma das seções do município · <a className="link" href={urlDivulgacao(uf, cd, cargo)} target="_blank" rel="noreferrer">JSON oficial do TSE para conferência</a></>}
         >
-          {itens ? <ResultadoCandidatos itens={itens} st={stF} cargo={cargo} max={dep ? 10 : 13} /> : (
+          {itens ? <ResultadoCandidatos itens={itens} st={stF} cargo={cargo} max={dep ? 10 : 13} uf={uf} /> : (
             <p className="text-sm muted">Para deputados, os votos por candidato estão disponíveis no total do município e em cada seção (via boletim de urna). Remova o filtro de zona/local para ver o total.</p>
           )}
         </Card>

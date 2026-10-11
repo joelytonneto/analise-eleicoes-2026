@@ -47,5 +47,7 @@ export const rotas = {
   comparar: (ids) => href(['comparar'], { u: ids.join(',') }),
   painel: (q) => href(['painel'], q),
   auditoria: () => href(['auditoria']),
-  localizar: (q) => href(['localizar'], q)
+  localizar: (q) => href(['localizar'], q),
+  buscar: (q) => href(['buscar'], q),
+  candidato: (uf, cargo, n) => href(['candidato', uf, cargo, n])
 };

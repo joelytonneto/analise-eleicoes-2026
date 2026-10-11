@@ -14,18 +14,23 @@ export function useIsMobile(max = 639) {
   return m;
 }
 
+const mesmasDeps = (a, b) => a.length === b.length && a.every((x, i) => Object.is(x, b[i]));
+
 export function useAsync(fn, deps) {
-  const [st, setSt] = useState({ loading: true, data: null, error: null });
+  const [st, setSt] = useState({ loading: true, data: null, error: null, deps: null });
   useEffect(() => {
     let vivo = true;
     setSt(s => ({ ...s, loading: true, error: null }));
     Promise.resolve()
       .then(fn)
-      .then(data => vivo && setSt({ loading: false, data, error: null }))
-      .catch(error => vivo && setSt({ loading: false, data: null, error }));
+      .then(data => vivo && setSt({ loading: false, data, error: null, deps }))
+      .catch(error => vivo && setSt({ loading: false, data: null, error, deps }));
     return () => { vivo = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
+  // Dados de outras dependências (ex.: trocou o cargo) nunca chegam à página: no primeiro
+  // render após a troca o efeito ainda não rodou, e usar o resultado antigo quebrava a tela.
+  if (!st.deps || !mesmasDeps(st.deps, deps)) return { loading: true, data: null, error: null };
   return st;
 }
 
@@ -133,4 +138,27 @@ export function Detalhes({ titulo, children }) {
 
 export function Empty({ children }) {
   return <div className="text-sm muted py-6 text-center">{children}</div>;
+}
+
+/**
+ * Selo do resultado oficial da candidatura (TSE). Sempre com texto, nunca só cor.
+ * mostrarNaoEleito: exibe também "Não eleito" (página do candidato).
+ */
+export function SeloResultado({ resultado, mostrarNaoEleito = false, className = '' }) {
+  const r = (resultado || '').toUpperCase();
+  if (!r) return null;
+  let estilo, texto = resultado.charAt(0) + resultado.slice(1).toLowerCase().replace('qp', 'QP');
+  if (r.includes('NÃO ELEITO')) {
+    if (!mostrarNaoEleito) return null;
+    estilo = { background: 'var(--surface-2)', color: 'var(--muted)' };
+  } else if (r.includes('ELEITO')) {
+    estilo = { background: 'color-mix(in srgb, var(--ok) 16%, transparent)', color: 'var(--ok)', boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--ok) 45%, transparent)' };
+    texto = `✓ ${texto}`;
+  } else if (r.includes('2º TURNO')) {
+    estilo = { background: 'color-mix(in srgb, var(--accent) 14%, transparent)', color: 'var(--accent)', boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent)' };
+    texto = '→ 2º turno';
+  } else {
+    estilo = { background: 'var(--surface-2)', color: 'var(--ink-2)' };
+  }
+  return <span className={`inline-flex items-center rounded-full px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide whitespace-nowrap align-middle ${className}`} style={estilo}>{texto}</span>;
 }

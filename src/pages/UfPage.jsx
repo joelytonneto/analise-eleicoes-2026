@@ -46,7 +46,7 @@ export default function UfPage({ uf, query }) {
   const [brasil, ud, geo, depData] = data || [];
 
   const ctx = useMemo(() => {
-    if (!ud) return null;
+    if (!ud || (dep && !depData)) return null;
     const resumo = brasil.ufs.find(u => u.uf === uf);
     const st = resumo.st[cargo];
     if (dep) {
@@ -102,7 +102,7 @@ export default function UfPage({ uf, query }) {
           subtitle={<>Totalização a partir das seções · <a className="link" href={urlDivulgacao(uf, null, cargo)} target="_blank" rel="noreferrer">JSON oficial do TSE</a></>}
           className="lg:col-span-2"
         >
-          <ResultadoCandidatos itens={ctx.itens} st={ctx.st} cargo={cargo} max={dep ? 10 : 12} />
+          <ResultadoCandidatos itens={ctx.itens} st={ctx.st} cargo={cargo} max={dep ? 10 : 12} uf={uf} />
           <div className="mt-4"><ComposicaoVotos st={ctx.st} cargo={cargo} /></div>
         </Card>
         <Card title="Mapa por município" subtitle={geo ? 'Clique num município para detalhar' : 'Sem malha geográfica para o exterior'} className="lg:col-span-3">

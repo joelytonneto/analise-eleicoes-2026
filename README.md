@@ -46,6 +46,7 @@ O resultado fica em `public/data/2026/t1/validacao.json` e é exibido no site. N
 # 1. baixe os zips listados acima para uma pasta (ex.: ./raw, com os arquivos por UF em ./raw/uf)
 node scripts/data/situacao-candidatos.mjs ./raw
 node --max-old-space-size=12000 scripts/data/build.mjs ./raw public/data/2026/t1
+node scripts/data/indices-busca.mjs          # índices da busca (escolas, endereços, candidatos)
 node scripts/data/geo.mjs public/data/geo
 node scripts/data/validate.mjs public/data/2026/t1 --bu=1500
 ```
