@@ -85,11 +85,11 @@ export function interpretar(q, municipios) {
   for (const m of candidatosMun) {
     const nomeMun = `${titulo(m.nome)} – ${m.uf}`;
     if (nums.length >= 2) {
-      res.push({ tipo: 'secao', label: `Seção ${pad(nums[1])} · Zona ${pad(nums[0])}`, sub: nomeMun, href: rotas.secao(m.uf, m.cd, nums[0], nums[1]), id: idSecao(m.uf, m.cd, nums[0], nums[1]) });
+      res.push({ tipo: 'secao', uf: m.uf, cd: m.cd, z: nums[0], s: nums[1], label: `Seção ${pad(nums[1])} · Zona ${pad(nums[0])}`, sub: nomeMun, href: rotas.secao(m.uf, m.cd, nums[0], nums[1]), id: idSecao(m.uf, m.cd, nums[0], nums[1]) });
     } else if (nums.length === 1) {
-      res.push({ tipo: 'zona', label: `Zona ${pad(nums[0])}`, sub: nomeMun, href: rotas.mun(m.uf, m.cd, { tab: 'secoes', zona: nums[0] }), id: idZona(m.uf, m.cd, nums[0]) });
+      res.push({ tipo: 'zona', uf: m.uf, cd: m.cd, z: nums[0], label: `Zona ${pad(nums[0])}`, sub: nomeMun, href: rotas.mun(m.uf, m.cd, { tab: 'secoes', zona: nums[0] }), id: idZona(m.uf, m.cd, nums[0]) });
     }
-    res.push({ tipo: 'mun', label: nomeMun, sub: `${m.nSecoes.toLocaleString('pt-BR')} seções · ${m.zonas} zona(s)${m.uf === 'ZZ' ? ' · Exterior' : ''}`, href: rotas.mun(m.uf, m.cd), id: idMun(m.uf, m.cd) });
+    res.push({ tipo: 'mun', uf: m.uf, cd: m.cd, label: nomeMun, sub: `${m.nSecoes.toLocaleString('pt-BR')} seções · ${m.zonas} zona(s)${m.uf === 'ZZ' ? ' · Exterior' : ''}`, href: rotas.mun(m.uf, m.cd), id: idMun(m.uf, m.cd) });
   }
   return res.slice(0, 12);
 }

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink, X, Trophy } from 'lucide-react';
 import { useAsync, Card, Loading, ErrorBox, Seg, Select } from '../components/ui';
 import { Indicadores, ComposicaoVotos, ResultadoCandidatos, CargoPicker, useCargo } from '../components/Resultado';
 import MapaResultado from '../components/MapaResultado';
@@ -84,6 +84,7 @@ export default function MunicipioPage({ uf, cd, query }) {
         <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           <CargoPicker cargo={cargo} disponiveis={disp} />
           <BotaoComparar id={idMun(uf, cd)} rotulo={`${nomeMun} – ${uf}`} />
+          <a className="btn" href={rotas.placar({ uf, m: cd, c: cargo, z: zonaFiltro ?? undefined, l: localFiltro ? localFiltro.split('-')[1] : undefined })} title="Ver este recorte no Placar, com fotos e cartões"><Trophy className="w-4 h-4" /> Ver no Placar</a>
           <a className="btn" href={urlPortalMunicipio(uf, cd, cargo)} target="_blank" rel="noreferrer" title="Abrir este município no portal oficial de resultados do TSE">TSE <ExternalLink className="w-3.5 h-3.5" /></a>
         </div>
       </div>

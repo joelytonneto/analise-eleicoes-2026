@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ExternalLink, Download, RefreshCw, MapPin, ChevronLeft, ChevronRight, ShieldCheck, ShieldAlert, Loader2, Info } from 'lucide-react';
+import { Trophy, ExternalLink, Download, RefreshCw, MapPin, ChevronLeft, ChevronRight, ShieldCheck, ShieldAlert, Loader2, Info } from 'lucide-react';
 import { useAsync, Card, Loading, ErrorBox, StatusIcon, Detalhes } from '../components/ui';
 import Trilha from '../components/Trilha';
 import { CandidateBars } from '../components/charts';
@@ -81,6 +81,7 @@ export default function SecaoPage({ uf, cd, z, s, query }) {
         <div className="flex flex-wrap gap-2">
           {ctx.prev && <a className="btn" href={rotas.secao(uf, cd, ctx.prev.z, ctx.prev.s)} title="Seção anterior"><ChevronLeft className="w-4 h-4" /> {pad(ctx.prev.s)}</a>}
           {ctx.next && <a className="btn" href={rotas.secao(uf, cd, ctx.next.z, ctx.next.s)} title="Próxima seção">{pad(ctx.next.s)} <ChevronRight className="w-4 h-4" /></a>}
+          <a className="btn" href={rotas.placar({ uf, m: cd, z, s, c: query?.c })} title="Ver esta urna no Placar, com fotos e cartões"><Trophy className="w-4 h-4" /> Placar</a>
           {!sec.ag && <BotaoComparar id={idSecao(uf, cd, z, s)} rotulo={`Seção ${pad(s)} Z${pad(z)} · ${munNome}`} />}
           <a className="btn btn-primary" href={urlPortalSecao(uf, cd, z, principal || s)} target="_blank" rel="noreferrer">Ver no portal do TSE <ExternalLink className="w-3.5 h-3.5" /></a>
         </div>

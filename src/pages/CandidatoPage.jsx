@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
-import { useAsync, Card, Loading, ErrorBox, Stat, SeloResultado } from '../components/ui';
+import { Trophy, Vote, Medal, MapPin, Percent } from 'lucide-react';
+import { useAsync, Card, Loading, ErrorBox } from '../components/ui';
+import { FotoCandidato, Contador, CartaoNumero, BarraGrossa } from '../components/Vitrine';
+import { carregarCandidatosPorChave, chaveCand } from '../lib/busca';
 import MapaResultado from '../components/MapaResultado';
 import DataTable from '../components/DataTable';
 import Trilha from '../components/Trilha';
@@ -20,20 +23,21 @@ export default function CandidatoPage({ uf, cargo, n }) {
     loadBrasil(),
     pres ? null : loadUf(uf),
     dep ? loadDep(uf) : null,
-    pres ? loadGeoBrasil() : uf !== 'ZZ' ? loadGeoUf(uf).catch(() => null) : null
+    pres ? loadGeoBrasil() : uf !== 'ZZ' ? loadGeoUf(uf).catch(() => null) : null,
+    carregarCandidatosPorChave().catch(() => null)
   ]), [uf, cargo, n]);
 
   const ctx = useMemo(() => {
     if (!data) return null;
-    const [brasil, ud, dd, geo] = data;
+    const [brasil, ud, dd, geo, porChave] = data;
     const lista = pres ? brasil.cand[1] : dep ? dd?.cand?.[cargo] : ud?.cand?.[cargo];
     const idx = (lista || []).findIndex(c => +c.n === n);
     if (idx < 0) return { naoEncontrado: true };
-    const cand = lista[idx];
+    const cand = { ...lista[idx], sq: porChave?.get(chaveCand(cargo, uf, n))?.sq };
     const posicao = [...lista].sort((a, b) => (b.votos || 0) - (a.votos || 0)).findIndex(c => +c.n === n) + 1;
     let linhas;
     if (pres) {
-      linhas = brasil.ufs.map(u => ({ key: u.uf, chave: u.uf, nome: u.nome, votos: u.v[1][idx] || 0, st: u.st[1], href: rotas.uf(u.uf) }));
+      linhas = brasil.ufs.map(u => ({ key: u.uf, chave: u.uf, nome: u.nome, votos: u.v[1][idx] || 0, st: u.st[1], href: rotas.uf(u.uf), placar: rotas.placar({ uf: u.uf, c: 1 }) }));
     } else {
       linhas = ud.mun.filter(m => m.st[cargo]).map(m => {
         let votos = 0;
@@ -41,7 +45,7 @@ export default function CandidatoPage({ uf, cargo, n }) {
           const d = dd.mun[m.cd]?.[cargo];
           if (d) for (let i = 0; i < d.v.length; i += 2) if (d.v[i] === idx) { votos = d.v[i + 1]; break; }
         } else votos = m.v?.[cargo]?.[idx] || 0;
-        return { key: m.cd, chave: String(m.ibge ?? m.cd), nome: titulo(m.nome), votos, st: m.st[cargo], href: rotas.mun(uf, m.cd, { c: cargo }), lat: m.lat, lng: m.lng };
+        return { key: m.cd, chave: String(m.ibge ?? m.cd), nome: titulo(m.nome), votos, st: m.st[cargo], href: rotas.mun(uf, m.cd, { c: cargo }), placar: rotas.placar({ uf, m: m.cd, c: cargo }), lat: m.lat, lng: m.lng };
       });
     }
     const stTotal = pres ? brasil.total.st[1] : brasil.ufs.find(u => u.uf === uf)?.st[cargo];
@@ -77,20 +81,49 @@ export default function CandidatoPage({ uf, cargo, n }) {
   return (
     <div className="space-y-4">
       <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, ...(pres ? [] : [{ label: UF_NOMES[uf], href: rotas.uf(uf, { c: cargo }) }]), { label: cand.nome }]} />
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-semibold flex flex-wrap items-center gap-2">{cand.nome} <SeloResultado resultado={cand.resultado} mostrarNaoEleito className="!text-xs !px-2 !py-0.5" /></h1>
-          <p className="text-sm ink-2">{cargoNome(cargo)} · {escopo} · {cand.partido} · nº {cand.n}</p>
-          <p className="text-xs muted">{cand.nomeCompleto}{cand.coligacao && cand.coligacao !== 'PARTIDO ISOLADO' ? ` · ${cand.coligacao}` : ''}</p>
+      <div className="rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #184f95, #2a78d6 55%, #6250d6)' }}>
+        <div className="absolute -right-10 -top-10 w-56 h-56 rounded-full opacity-10" style={{ background: '#fff' }} />
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+          <FotoCandidato cargo={cargo} uf={pres ? 'BR' : uf} sq={cand.sq} nome={cand.nome} cor="rgba(255,255,255,.85)" size={112} className="self-center sm:self-auto" />
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <div className="text-xs uppercase tracking-widest opacity-80">{cargoNome(cargo)} · {escopo}</div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold mt-1 break-words">{cand.nome}</h1>
+            <p className="text-sm opacity-90 mt-0.5">{cand.partido} · nº {cand.n}</p>
+            <p className="text-xs opacity-80">{cand.nomeCompleto}{cand.coligacao && cand.coligacao !== 'PARTIDO ISOLADO' ? ` · ${cand.coligacao}` : ''}</p>
+            {cand.resultado && <span className="inline-block mt-2 rounded-full px-2.5 py-0.5 text-xs font-semibold" style={{ background: 'rgba(255,255,255,.2)' }}>{cand.resultado}</span>}
+          </div>
+          <div className="text-center sm:text-right shrink-0">
+            <div className="text-3xl sm:text-5xl font-extrabold tracking-tight"><Contador valor={cand.votos} /></div>
+            <div className="text-sm opacity-90">votos · {fmtPct(pct(cand.votos, validosSt(stTotal)), 1)} dos válidos · {ctx.posicao}º lugar</div>
+            <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-end">
+              <a className="btn !bg-white/15 !text-white !shadow-none hover:!bg-white/25" href={pres ? rotas.placar({ c: 1 }) : rotas.placar({ uf, c: cargo })}><Trophy className="w-4 h-4" /> Placar do cargo</a>
+              <a className="btn !bg-white/15 !text-white !shadow-none hover:!bg-white/25" href={pres ? rotas.brasil() : rotas.uf(uf, { c: cargo })}>Todos os candidatos</a>
+            </div>
+          </div>
         </div>
-        <a className="btn" href={pres ? rotas.brasil() : rotas.uf(uf, { c: cargo })}>Ver todos os candidatos</a>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Votos" value={fmt(cand.votos)} sub={`${fmtPct(pct(cand.votos, validosSt(stTotal)))} dos válidos`} />
-        <Stat label="Posição" value={`${ctx.posicao}º`} sub={`de ${ctx.nCands} candidaturas`} />
-        <Stat label={`Mais votos em`} value={melhor?.votos ? fmt(melhor.votos) : '—'} sub={melhor?.votos ? melhor.nome : ''} />
-        <Stat label={`Maior % dos válidos`} value={melhorPct ? fmtPct(melhorPct.pValidos) : '—'} sub={melhorPct?.nome} title="Entre unidades com pelo menos 100 votos válidos" />
+        <CartaoNumero icon={Vote} rotulo="Votos" valor={cand.votos} sub={`${fmtPct(pct(cand.votos, validosSt(stTotal)))} dos válidos`} cor="#2a78d6" />
+        <CartaoNumero icon={Medal} rotulo="Posição" valor={ctx.posicao} formato={v => `${v}º`} sub={`de ${ctx.nCands} candidaturas`} cor="#6250d6" />
+        <CartaoNumero icon={MapPin} rotulo="Mais votos em" valor={melhor?.votos || 0} sub={melhor?.votos ? melhor.nome : ''} cor="#1baf7a" />
+        <CartaoNumero icon={Percent} rotulo="Maior % dos válidos" valor={melhorPct?.pValidos ?? 0} formato={v => (melhorPct ? fmtPct(v) : '—')} sub={melhorPct?.nome} cor="#eb6834" />
       </div>
+      <Card title={`Onde teve mais votos`} subtitle={`Os 10 ${pres ? 'estados' : 'municípios'} com mais votos · toque para abrir o placar do lugar`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
+          {[...linhas].filter(r => r.votos > 0).sort((a, b) => b.votos - a.votos).slice(0, 10).map((r, i, arr) => (
+            <a key={r.key} href={r.placar} className="flex items-center gap-3 min-w-0 group">
+              <span className="w-6 text-right text-xs font-semibold muted num shrink-0">{i + 1}º</span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-2 text-sm">
+                  <span className="font-medium truncate group-hover:underline">{r.nome}</span>
+                  <span className="num shrink-0"><b>{fmt(r.votos)}</b> <span className="muted text-xs">{fmtPct(r.pValidos, 1)}</span></span>
+                </div>
+                <div className="mt-1"><BarraGrossa pct={(r.votos / arr[0].votos) * 100} cor="var(--accent)" altura={6} /></div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </Card>
       {ctx.total !== cand.votos && (
         <p className="text-xs muted">Soma por {unidadeMin}: {fmt(ctx.total)} votos (o total oficial considera também seções sem {unidadeMin} identificado).</p>
       )}

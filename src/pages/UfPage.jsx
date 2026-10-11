@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Trophy } from 'lucide-react';
 import { useAsync, Card, Loading, ErrorBox } from '../components/ui';
 import { Indicadores, ComposicaoVotos, ResultadoCandidatos, CargoPicker, useCargo } from '../components/Resultado';
 import MapaResultado from '../components/MapaResultado';
@@ -93,6 +94,7 @@ export default function UfPage({ uf, query }) {
         <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           <CargoPicker cargo={cargo} disponiveis={disp} />
           <BotaoComparar id={idUf(uf)} rotulo={UF_NOMES[uf]} />
+          <a className="btn" href={rotas.placar({ uf, c: cargo })} title="Ver este estado no Placar, com fotos e cartões"><Trophy className="w-4 h-4" /> Ver no Placar</a>
         </div>
       </div>
       <Indicadores st={ctx.st} cargo={cargo} />

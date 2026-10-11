@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from 'react';
-import { Trophy, Users, Vote, CircleSlash, UserX, BarChart3 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Trophy, Users, Vote, CircleSlash, UserX, BarChart3, Search, MapPin, Building2, School, UserRound, ChevronRight, FileText, Info, Loader2 } from 'lucide-react';
 import { useAsync, Loading, ErrorBox, Seg, Select, SeloResultado } from '../components/ui';
-import { FotoCandidato, Contador, BarraGrossa, CartaoNumero } from '../components/Vitrine';
-import { loadBrasil, UF_NOMES, cargosDaUf, cargoNome, validosSt, nulosSt, S } from '../lib/data';
-import { carregarCandidatos, eleitoOuTurno2 } from '../lib/busca';
-import { mapaCores, corPorIndice } from '../lib/colors';
-import { fmt, fmtPct, pct } from '../lib/format';
+import { FotoCandidato, Contador, BarraGrossa, CartaoNumero, CartaoUnidade } from '../components/Vitrine';
+import { interpretar, useMunicipios, useBuscaTexto } from '../components/SearchBox';
+import { loadBrasil, loadUf, loadMun, loadDep, UF_NOMES, cargosDaUf, cargoNome, validosSt, nulosSt, secoesDoMunicipio, agrupar, S } from '../lib/data';
+import { carregarCandidatos, eleitoOuTurno2, subLocal, subCandidato, hrefCandidato } from '../lib/busca';
+import { corPorIndice, OUTROS } from '../lib/colors';
+import { fmt, fmtPct, pct, titulo, pad, semAcento } from '../lib/format';
 import { rotas, setQuery } from '../lib/router';
 
 const fmtPct1 = v => fmtPct(v, 1);
@@ -50,81 +51,365 @@ function LinhaCandidato({ c, pos, total, cor, topo }) {
   );
 }
 
-/** Placar visual: fotos oficiais, votos e percentuais — para acompanhar, não para analisar. */
-export default function PlacarPage({ query }) {
+// ---------------------------------------------------------------- escopo (Brasil → UF → município → zona → local → seção)
+
+function lerEscopo(query) {
   const uf = query.uf && UF_NOMES[query.uf] ? query.uf : '';
-  const disp = uf ? cargosDaUf(uf) : cargosDaUf(null);
+  const cd = uf && /^\d{5}$/.test(query.m || '') ? query.m : '';
+  const z = cd && +query.z > 0 ? +query.z : null;
+  const l = z != null && +query.l > 0 ? +query.l : null;
+  const s = z != null && l == null && +query.s > 0 ? +query.s : null;
+  const nivel = s != null ? 'secao' : l != null ? 'local' : z != null ? 'zona' : cd ? 'mun' : uf ? 'uf' : 'br';
+  return { uf, cd, z, l, s, nivel };
+}
+
+/** Endereço do Placar para um lugar encontrado na busca. */
+function hrefPlacarLugar(r, c) {
+  if (r.tipo === 'uf') return rotas.placar({ uf: r.uf, c });
+  if (r.tipo === 'mun') return rotas.placar({ uf: r.uf, m: r.cd, c });
+  if (r.tipo === 'zona') return rotas.placar({ uf: r.uf, m: r.cd, z: r.z, c });
+  if (r.tipo === 'secao') return rotas.placar({ uf: r.uf, m: r.cd, z: r.z, s: r.s, c });
+  return r.href;
+}
+
+/** Busca de qualquer lugar (estado, cidade, zona e seção, escola ou endereço) ou candidato, abrindo no Placar. */
+function BuscaLugar({ cargo }) {
+  const [q, setQ] = useState('');
+  const [aberto, setAberto] = useState(false);
+  const [sel, setSel] = useState(0);
+  const municipios = useMunicipios();
+  const lugares = useMemo(() => (q.trim() ? interpretar(q, municipios).slice(0, 6) : []), [q, municipios]);
+  const extra = useBuscaTexto(q, municipios, { limiteLocais: 6, limiteCand: 4 });
+  const res = useMemo(() => {
+    const out = lugares.map(r => ({ ...r, href: hrefPlacarLugar(r, cargo) }));
+    for (const l of extra.locais) out.push({ tipo: 'local', label: titulo(l.nome), sub: subLocal(l), href: rotas.placar({ uf: l.uf, m: l.cd, z: l.z, l: l.n, c: cargo }) });
+    for (const c of extra.candidatos) out.push({ tipo: 'cand', label: c.nome, sub: subCandidato(c), href: hrefCandidato(c) });
+    return out;
+  }, [lugares, extra, cargo]);
+  useEffect(() => setSel(0), [q]);
+  const ir = r => { window.location.hash = r.href; setAberto(false); setQ(''); };
+  const Icone = { uf: MapPin, mun: Building2, zona: MapPin, secao: Vote, local: School, cand: UserRound };
+  return (
+    <div className="relative w-full sm:w-80 max-w-full">
+      <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 muted" />
+      <input
+        className="input w-full pl-8"
+        placeholder="Ir para cidade, escola, seção ou candidato"
+        aria-label="Buscar lugar ou candidato no Placar"
+        value={q}
+        onChange={e => { setQ(e.target.value); setAberto(true); }}
+        onFocus={() => setAberto(true)}
+        onBlur={() => setTimeout(() => setAberto(false), 150)}
+        onKeyDown={e => {
+          if (e.key === 'ArrowDown') { e.preventDefault(); setSel(x => Math.min(res.length - 1, x + 1)); }
+          else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(x => Math.max(0, x - 1)); }
+          else if (e.key === 'Enter' && res[sel]) ir(res[sel]);
+          else if (e.key === 'Escape') setAberto(false);
+        }}
+      />
+      {aberto && q.trim() && (
+        <div className="absolute z-20 mt-1 left-0 right-0 card p-1 max-h-[60vh] overflow-auto" style={{ boxShadow: '0 0 0 1px var(--ring), 0 12px 32px rgba(0,0,0,.18)' }}>
+          {res.map((r, i) => {
+            const I = Icone[r.tipo] || MapPin;
+            return (
+              <a key={`${r.tipo}-${r.href}`} href={r.href} onMouseDown={e => e.preventDefault()} onClick={e => { e.preventDefault(); ir(r); }}
+                className="flex items-start gap-2.5 px-2.5 py-2 rounded-lg" style={i === sel ? { background: 'var(--surface-2)' } : undefined}>
+                <I className="w-4 h-4 mt-0.5 shrink-0 muted" />
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium truncate">{r.label}</span>
+                  {r.sub && <span className="block text-xs muted truncate">{r.sub}</span>}
+                </span>
+              </a>
+            );
+          })}
+          {!res.length && !extra.carregando && <div className="px-2.5 py-2 text-sm muted">Nada encontrado. Tente o nome da cidade, “Fortaleza 114 1” (zona e seção) ou o nome da escola.</div>}
+          {extra.carregando && <div className="px-2.5 py-2 text-xs muted flex items-center gap-1.5"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Buscando escolas e candidatos…</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const ORDENS = [
+  { value: 'aptos', label: 'Mais eleitores' },
+  { value: 'comp', label: 'Comparecimento' },
+  { value: 'nome', label: 'A–Z' }
+];
+
+/** Grade de cartões dos lugares contidos no escopo (estados, municípios, locais, seções…). */
+function GradeLugares({ titulo: tit, itens, ordemInicial = 'aptos', alternativa }) {
+  const [filtro, setFiltro] = useState('');
+  const [ordem, setOrdem] = useState(ordemInicial);
+  const [qtd, setQtd] = useState(24);
+  const lista = useMemo(() => {
+    const f = semAcento(filtro.trim());
+    const out = f ? itens.filter(u => semAcento(`${u.nome} ${u.sub || ''} ${u.lider?.nome || ''}`).includes(f)) : [...itens];
+    const tx = u => (u.aptos ? u.comp / u.aptos : 0);
+    if (ordem === 'nome') out.sort((a, b) => (a.ordemNome ?? a.nome).localeCompare(b.ordemNome ?? b.nome, 'pt-BR', { numeric: true }));
+    else if (ordem === 'comp') out.sort((a, b) => tx(b) - tx(a));
+    else out.sort((a, b) => b.aptos - a.aptos);
+    return out;
+  }, [itens, filtro, ordem]);
+  if (!itens.length) return null;
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-base font-semibold">{tit} <span className="muted font-normal">({fmt(itens.length)})</span></h2>
+        <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
+          {alternativa}
+          {itens.length > 8 && <Seg size="xs" value={ordem} onChange={v => { setOrdem(v); setQtd(24); }} options={ORDENS} />}
+          {itens.length > 12 && (
+            <input className="input !py-1 text-sm w-full sm:w-48" placeholder="Filtrar…" aria-label={`Filtrar ${tit}`} value={filtro} onChange={e => { setFiltro(e.target.value); setQtd(24); }} />
+          )}
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
+        {lista.slice(0, qtd).map(u => <CartaoUnidade key={u.key} {...u} />)}
+      </div>
+      {!lista.length && <p className="text-sm muted">Nada encontrado com “{filtro}”.</p>}
+      {lista.length > qtd && <button className="btn w-full justify-center" onClick={() => setQtd(x => x + 48)}>Mostrar mais ({fmt(lista.length - qtd)})</button>}
+    </section>
+  );
+}
+
+/** Placar visual: fotos oficiais, votos e percentuais de qualquer recorte — do Brasil até uma urna. */
+export default function PlacarPage({ query }) {
+  const esc = lerEscopo(query);
+  const { uf, cd, z, l, s, nivel } = esc;
+  const disp = cargosDaUf(uf || null);
   const cargo = disp.some(c => c.id === +query.c) ? +query.c : uf && uf !== 'ZZ' ? 3 : 1;
   const prop = cargo >= 6;
+  const precisaDep = prop && (nivel === 'uf' || nivel === 'mun');
   const [filtro, setFiltro] = useState('eleitos');
   const [qtd, setQtd] = useState(24);
-  const { data, loading, error } = useAsync(() => Promise.all([loadBrasil(), carregarCandidatos()]), []);
+  const [abaMun, setAbaMun] = useState('locais');
+  const chaveEscopo = `${uf}|${cd}|${z}|${l}|${s}`;
+  useEffect(() => { setQtd(24); window.scrollTo(0, 0); }, [chaveEscopo]);
+
+  const { data, loading, error } = useAsync(() => Promise.all([
+    loadBrasil(), carregarCandidatos(),
+    uf ? loadUf(uf) : null,
+    cd ? loadMun(uf, cd) : null,
+    precisaDep ? loadDep(uf) : null
+  ]), [uf, cd, precisaDep]);
 
   const ctx = useMemo(() => {
     if (!data) return null;
-    const [brasil, todos] = data;
-    const resumo = uf ? brasil.ufs.find(u => u.uf === uf) : null;
-    const st = uf ? resumo?.st[cargo] : brasil.total.st[1];
-    if (!st) return { st: null };
-    const idx = new Map(todos.map(c => [`${c.cargo}|${c.uf}|${c.n}`, c]));
-    let lista;
-    if (cargo === 1) {
-      const v = uf ? resumo.v[1] : brasil.total.v[1];
-      lista = brasil.cand[1].map((c, i) => ({ ...idx.get(`1|BR|${c.n}`), ...c, cargo: 1, uf: 'BR', votos: v[i] || 0 }));
+    const [brasil, todos, ud, mf, dd] = data;
+    const ufC = cargo === 1 ? 'BR' : uf;
+    const idx = new Map(todos.filter(c => c.cargo === cargo && c.uf === ufC).map(c => [+c.n, c]));
+    const info = c => ({ ...idx.get(+c.n), ...c, cargo, uf: ufC, href: rotas.candidato(ufC, cargo, c.n) });
+    // lista de referência (ordem dos vetores de votos) e posição de cada candidato no ranking do escopo de referência
+    const ref = cargo === 1 ? brasil.cand[1] : prop ? dd?.cand?.[cargo] || [] : ud?.cand?.[cargo] || [];
+    const rank = new Map([...ref].sort((a, b) => (b.votos || 0) - (a.votos || 0)).map((c, i) => [+c.n, i]));
+    const corDe = n => {
+      const r = rank.get(+n);
+      if (prop) return r != null && r < 3 ? corPorIndice(r) : 'var(--accent)';
+      return r != null ? corPorIndice(r) : OUTROS.light;
+    };
+    const valido = i => !idx.get(+ref[i]?.n)?.votoValido;
+    const deVetor = vec => ref.map((c, i) => ({ ...info(c), votos: vec?.[i] || 0 }));
+
+    // resumo de um lugar: quem liderou, a divisão dos votos
+    const resumoVetor = (vec, stU) => {
+      if (!vec || !stU) return {};
+      const ordem = vec.map((v, i) => [v || 0, i]).filter(([v, i]) => v > 0 && valido(i)).sort((a, b) => b[0] - a[0]);
+      if (!ordem.length) return {};
+      const [bv, bi] = ordem[0];
+      const fatias = ordem.slice(0, 4).map(([v, i]) => ({ key: i, votos: v, cor: corDe(ref[i].n), titulo: `${ref[i].nome}: ${fmt(v)}` }));
+      const resto = ordem.slice(4).reduce((a, [v]) => a + v, 0);
+      if (resto) fatias.push({ key: 'outros', votos: resto, cor: OUTROS.light, titulo: `Demais: ${fmt(resto)}` });
+      return { lider: { ...info(ref[bi]), votos: bv, pct: pct(bv, validosSt(stU)), cor: corDe(ref[bi].n) }, fatias, total: ordem.reduce((a, [v]) => a + v, 0) };
+    };
+    const resumoPares = (d, stU) => {
+      if (!d?.v?.length || !stU) return {};
+      let bi = -1, bv = -1;
+      for (let i = 0; i < d.v.length; i += 2) if (d.v[i + 1] > bv && valido(d.v[i])) { bv = d.v[i + 1]; bi = d.v[i]; }
+      if (bi < 0) return {};
+      return { lider: { ...info(ref[bi]), votos: bv, pct: pct(bv, validosSt(stU)), cor: corDe(ref[bi].n), rotulo: 'deputado mais votado' } };
+    };
+    const unidade = (u, extra) => ({ aptos: u.st?.[S.aptos] || 0, comp: u.st?.[S.comp] || 0, ...extra });
+
+    let st, lista = null, filhos = [], filhosZonas = null, extra = {};
+    const m = cd ? ud?.mun.find(x => x.cd === cd) : null;
+    if (cd && !m) return { erro: `Município ${cd} não encontrado em ${UF_NOMES[uf]}.` };
+    const nomeMun = m ? titulo(m.nome) : '';
+
+    if (nivel === 'br') {
+      st = brasil.total.st[1];
+      lista = deVetor(brasil.total.v[1]);
+      filhos = brasil.ufs.filter(u => u.st[1]).map(u => unidade({ st: u.st[1] }, {
+        key: u.uf, nome: u.nome, ordemNome: u.uf === 'ZZ' ? '~' : u.nome, sub: u.uf === 'ZZ' ? 'Eleitores no exterior' : `${fmt(u.nMun)} municípios`,
+        href: rotas.placar({ uf: u.uf, c: 1 }), ...resumoVetor(u.v[1], u.st[1])
+      }));
+    } else if (nivel === 'uf') {
+      const resumo = brasil.ufs.find(u => u.uf === uf);
+      st = resumo?.st[cargo];
+      lista = cargo === 1 ? deVetor(resumo?.v[1]) : todos.filter(c => c.cargo === cargo && c.uf === uf).map(c => ({ ...c, href: rotas.candidato(uf, cargo, c.n) }));
+      filhos = (ud?.mun || []).filter(x => x.st[cargo]).map(x => unidade({ st: x.st[cargo] }, {
+        key: x.cd, nome: titulo(x.nome), sub: `${fmt(x.nSecoes)} seções${x.capital ? ' · capital' : ''}`,
+        href: rotas.placar({ uf, m: x.cd, c: cargo }),
+        ...(prop ? resumoPares(dd?.mun?.[x.cd]?.[cargo], x.st[cargo]) : resumoVetor(x.v[cargo], x.st[cargo]))
+      }));
+      extra.sub = `${fmt(resumo?.nMun)} ${uf === 'ZZ' ? 'cidades' : 'municípios'} · ${fmt(resumo?.nSecoes)} seções`;
     } else {
-      lista = todos.filter(c => c.cargo === cargo && c.uf === uf);
+      const secoes = secoesDoMunicipio(mf, UF_NOMES[uf]);
+      const cartaoLocal = u => unidade({ st: u.st[cargo] }, {
+        key: `${u.z}-${u.local.n}`, nome: titulo(u.local.nome),
+        sub: [titulo(u.local.end), titulo(u.local.bairro), `Zona ${pad(u.z)}`, `${u.nSecoes} seç${u.nSecoes === 1 ? 'ão' : 'ões'}`].filter(Boolean).join(' · '),
+        href: rotas.placar({ uf, m: cd, z: u.z, l: u.local.n, c: cargo }), ...(prop ? {} : resumoVetor(u.v[cargo], u.st[cargo]))
+      });
+      if (nivel === 'mun') {
+        st = m.st[cargo];
+        if (prop) {
+          const d = dd?.mun?.[cd]?.[cargo];
+          lista = [];
+          if (d) for (let i = 0; i < d.v.length; i += 2) lista.push({ ...info(ref[d.v[i]]), votos: d.v[i + 1] });
+        } else lista = deVetor(m.v[cargo]);
+        filhos = agrupar(secoes, 'local').filter(u => u.st[cargo]).map(cartaoLocal);
+        if (m.zonas.length > 1) {
+          filhosZonas = agrupar(secoes, 'zona').filter(u => u.st[cargo]).map(u => unidade({ st: u.st[cargo] }, {
+            key: u.z, nome: `Zona ${pad(u.z)}`, ordemNome: pad(u.z), sub: `${fmt(u.locais.size)} locais · ${fmt(u.nSecoes)} seções`,
+            href: rotas.placar({ uf, m: cd, z: u.z, c: cargo }), ...(prop ? {} : resumoVetor(u.v[cargo], u.st[cargo]))
+          }));
+        }
+        extra.sub = `${m.zonas.length} zona(s) · ${fmt(m.nLocais)} locais · ${fmt(m.nSecoes)} seções`;
+      } else {
+        let sel;
+        if (nivel === 'zona') sel = secoes.filter(x => x.z === z);
+        else if (nivel === 'local') sel = secoes.filter(x => x.z === z && x.local?.n === l);
+        else {
+          let sec = secoes.find(x => x.z === z && x.s === s);
+          if (!sec) return { erro: `A seção ${pad(s)} da zona ${pad(z)} não existe em ${nomeMun} – ${uf}.` };
+          if (sec.ag) { extra.agregadaA = sec.p; sec = secoes.find(x => x.z === z && x.s === sec.p) || sec; }
+          extra.sec = sec;
+          sel = [sec];
+        }
+        if (!sel.length) return { erro: nivel === 'zona' ? `A zona ${pad(z)} não existe em ${nomeMun} – ${uf}.` : `Local de votação não encontrado na zona ${pad(z)} de ${nomeMun} – ${uf}.` };
+        extra.local = sel[0].local;
+        const [agg] = agrupar(sel.map(x => ({ ...x, z: 0, local: { n: 0 } })), 'zona');
+        st = agg?.st[cargo];
+        lista = prop ? null : agg ? deVetor(agg.v[cargo]) : [];
+        if (nivel === 'zona') {
+          filhos = agrupar(sel, 'local').filter(u => u.st[cargo]).map(cartaoLocal);
+          extra.sub = `${fmt(new Set(sel.map(x => x.local?.n)).size)} locais · ${fmt(agg?.nSecoes || 0)} seções · ${nomeMun} – ${uf}`;
+        } else if (nivel === 'local') {
+          filhos = sel.filter(x => x.st?.[cargo]).map(x => unidade({ st: x.st[cargo] }, {
+            key: x.s, nome: `Seção ${pad(x.s)}`, ordemNome: pad(x.s), sub: x.agr ? `Agrega a(s) seção(ões) ${x.agr.map(a => pad(a)).join(', ')}` : x.m ? `Urna ${x.m}` : null,
+            href: rotas.placar({ uf, m: cd, z, s: x.s, c: cargo }), ...(prop ? {} : resumoVetor(x.v?.[cargo], x.st[cargo]))
+          }));
+          const loc = extra.local;
+          extra.sub = [titulo(loc?.end), titulo(loc?.bairro), `${nomeMun} – ${uf}`, `Zona ${pad(z)}`].filter(Boolean).join(' · ');
+        } else {
+          const loc = extra.local;
+          extra.sub = [titulo(loc?.nome), titulo(loc?.end), `${nomeMun} – ${uf}`].filter(Boolean).join(' · ');
+        }
+      }
     }
-    lista = lista.filter(c => !c.votoValido).sort((a, b) => b.votos - a.votos)
-      .map(c => ({ ...c, href: rotas.candidato(c.cargo === 1 ? 'BR' : c.uf, c.cargo, c.n) }));
-    // cor por candidato: Presidente segue a ordem nacional, como no resto do site
-    const ref = cargo === 1 ? brasil.cand[1] : lista;
-    return { st, lista, cores: mapaCores(ref), validos: validosSt(st) };
-  }, [data, uf, cargo]);
+    if (lista) {
+      lista = lista.filter(c => !c.votoValido && (nivel === 'br' || nivel === 'uf' || !prop || c.votos > 0)).sort((a, b) => b.votos - a.votos);
+    }
+    return { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos: validosSt(st) };
+  }, [data, cargo, prop, uf, cd, z, l, s, nivel]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorBox error={error} />;
 
-  const escopo = uf ? UF_NOMES[uf] : 'Brasil';
   const trocar = patch => { setQtd(24); setQuery(patch); };
   const controles = (
     <div className="flex flex-wrap items-center gap-2 min-w-0 max-w-full">
-      <Select value={uf} onChange={v => trocar({ uf: v || undefined, c: v ? (v === 'ZZ' ? 1 : cargo === 1 ? 1 : cargo) : undefined })} aria-label="Escopo">
+      <Select value={uf} onChange={v => trocar({ uf: v || undefined, m: undefined, z: undefined, l: undefined, s: undefined, c: v ? (v === 'ZZ' ? 1 : cargo === 1 ? 1 : cargo) : undefined })} aria-label="Estado">
         <option value="">Brasil</option>
-        {Object.entries(UF_NOMES).map(([s, n]) => <option key={s} value={s}>{n}</option>)}
+        {Object.entries(UF_NOMES).map(([sg, n]) => <option key={sg} value={sg}>{n}</option>)}
       </Select>
       {disp.length > 1 && <Seg value={cargo} onChange={v => trocar({ c: v })} options={disp.map(c => ({ value: c.id, label: c.curto }))} />}
+      <div className="w-full lg:w-auto lg:ml-auto"><BuscaLugar cargo={cargo} /></div>
     </div>
   );
 
-  if (!ctx?.st) {
-    return <div className="space-y-4">{controles}<ErrorBox>Não há votação de {cargoNome(cargo)} em {escopo}.</ErrorBox></div>;
+  if (ctx?.erro) return <div className="space-y-4">{controles}<ErrorBox>{ctx.erro}</ErrorBox></div>;
+
+  const { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos } = ctx;
+  const local = extra.local;
+  const nomeEscopo = {
+    br: 'Brasil', uf: UF_NOMES[uf], mun: `${nomeMun} – ${uf}`, zona: `Zona ${pad(z)} · ${nomeMun}`,
+    local: titulo(local?.nome || ''), secao: `Seção ${pad(s)} · Zona ${pad(z)}`
+  }[nivel];
+
+  const trilha = [{ label: 'Brasil', href: rotas.placar() }];
+  if (uf) trilha.push({ label: UF_NOMES[uf], href: rotas.placar({ uf, c: cargo }) });
+  if (cd) trilha.push({ label: nomeMun, href: rotas.placar({ uf, m: cd, c: cargo }) });
+  if (z != null) trilha.push({ label: `Zona ${pad(z)}`, href: rotas.placar({ uf, m: cd, z, c: cargo }) });
+  if (local && (nivel === 'local' || nivel === 'secao')) trilha.push({ label: titulo(local.nome), href: rotas.placar({ uf, m: cd, z, l: local.n, c: cargo }) });
+  if (s != null) trilha.push({ label: `Seção ${pad(s)}` });
+  trilha[trilha.length - 1] = { label: trilha[trilha.length - 1].label };
+
+  const analise = {
+    br: rotas.brasil(), uf: rotas.uf(uf, { c: cargo }), mun: rotas.mun(uf, cd, { c: cargo }),
+    zona: rotas.mun(uf, cd, { c: cargo, tab: 'secoes', zona: z }),
+    local: rotas.mun(uf, cd, { c: cargo, tab: 'secoes', zona: z, local: `${z}-${l}` }),
+    secao: rotas.secao(uf, cd, z, extra.agregadaA || s, { c: cargo })
+  }[nivel];
+
+  const hero = (
+    <div className="rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #184f95, #2a78d6 55%, #6250d6)' }}>
+      <div className="absolute -right-10 -top-10 w-56 h-56 rounded-full opacity-10" style={{ background: '#fff' }} />
+      <div className="relative flex flex-wrap items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div className="text-xs uppercase tracking-widest opacity-80 flex items-center gap-1.5"><Trophy className="w-4 h-4" /> Placar · 1º turno 2026</div>
+          {trilha.length > 1 && (
+            <nav aria-label="Caminho" className="mt-1.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs sm:text-sm">
+              {trilha.map((t, i) => (
+                <React.Fragment key={i}>
+                  {i > 0 && <ChevronRight className="w-3.5 h-3.5 opacity-60 shrink-0" />}
+                  {t.href ? <a href={t.href} className="opacity-85 hover:opacity-100 underline-offset-2 hover:underline">{t.label}</a> : <span className="font-semibold">{t.label}</span>}
+                </React.Fragment>
+              ))}
+            </nav>
+          )}
+          <h1 className={`${nivel === 'local' ? 'text-xl sm:text-3xl' : 'text-2xl sm:text-4xl'} font-extrabold mt-1 break-words`}>{cargoNome(cargo)} · {nomeEscopo}</h1>
+          {extra.sub && <p className="text-sm opacity-90 mt-1">{extra.sub}</p>}
+          {st && <p className="text-sm opacity-90 mt-0.5"><Contador valor={validos} /> votos válidos · {fmtPct1(pct(st[S.comp], st[S.aptos]))} de comparecimento</p>}
+        </div>
+        <a href={analise} className="btn !bg-white/15 !text-white !shadow-none hover:!bg-white/25">
+          {nivel === 'secao' ? <><FileText className="w-4 h-4" /> Boletim de urna e auditoria</> : <><BarChart3 className="w-4 h-4" /> Ver análise detalhada</>}
+        </a>
+      </div>
+    </div>
+  );
+
+  if (!st) {
+    return (
+      <div className="space-y-5">
+        {hero}
+        {controles}
+        <ErrorBox>{nivel === 'secao' ? 'Esta seção não teve votação registrada (não instalada ou anulada).' : `Não há votação de ${cargoNome(cargo)} em ${nomeEscopo}.`}</ErrorBox>
+      </div>
+    );
   }
 
-  const { st, lista, cores, validos } = ctx;
-  const cor = (c, i) => (prop ? (i < 3 ? corPorIndice(i) : 'var(--accent)') : cores.get(+c.n) || corPorIndice(99));
-  const nPodio = prop ? 3 : Math.min(3, lista.length);
-  const podio = lista.slice(0, nPodio);
-  const eleitos = lista.filter(c => eleitoOuTurno2(c.resultado));
-  const resto = prop && filtro === 'eleitos' && eleitos.length ? eleitos.filter(c => !podio.includes(c)) : lista.slice(nPodio);
+  // a cor segue o candidato (posição no ranking do estado/Brasil), em qualquer recorte
+  const cor = c => corDe(c.n);
   const vagas = cargo === 5 ? 2 : 1;
   const totalVotos = st[S.comp] * vagas;
+  const nPodio = lista ? Math.min(3, lista.length) : 0;
+  const podio = lista ? lista.slice(0, nPodio) : [];
+  const eleitos = lista ? lista.filter(c => eleitoOuTurno2(c.resultado)) : [];
+  const resto = !lista ? [] : prop && filtro === 'eleitos' && eleitos.length ? eleitos.filter(c => !podio.includes(c)) : lista.slice(nPodio);
   const ordemPodio = podio.length === 3 ? [podio[1], podio[0], podio[2]] : podio;
+  const tituloFilhos = { br: 'Estados e exterior', uf: uf === 'ZZ' ? 'Cidades no exterior' : `Municípios de ${UF_NOMES[uf]}`, mun: 'Locais de votação', zona: 'Locais de votação da zona', local: 'Seções (urnas) deste local' }[nivel];
+  const mostrarZonas = nivel === 'mun' && filhosZonas && abaMun === 'zonas';
 
   return (
     <div className="space-y-5">
-      <div className="rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #184f95, #2a78d6 55%, #6250d6)' }}>
-        <div className="absolute -right-10 -top-10 w-56 h-56 rounded-full opacity-10" style={{ background: '#fff' }} />
-        <div className="relative flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <div className="text-xs uppercase tracking-widest opacity-80 flex items-center gap-1.5"><Trophy className="w-4 h-4" /> Placar · 1º turno 2026</div>
-            <h1 className="text-2xl sm:text-4xl font-extrabold mt-1">{cargoNome(cargo)} · {escopo}</h1>
-            <p className="text-sm opacity-90 mt-1"><Contador valor={validos} /> votos válidos · {fmtPct1(pct(st[S.comp], st[S.aptos]))} de comparecimento</p>
-          </div>
-          <a href={cargo === 1 && !uf ? rotas.brasil() : rotas.uf(uf, { c: cargo })} className="btn !bg-white/15 !text-white !shadow-none hover:!bg-white/25"><BarChart3 className="w-4 h-4" /> Ver análise detalhada</a>
-        </div>
-      </div>
-
+      {hero}
       {controles}
+
+      {extra.agregadaA && (
+        <div className="card p-4 text-sm flex gap-3"><Info className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
+          <div>A seção {pad(s)} é <b>agregada</b>: seus eleitores votaram na urna da seção {pad(extra.agregadaA)}. Os números abaixo são dessa urna, que reúne as duas.</div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <CartaoNumero icon={Vote} rotulo="Votos válidos" valor={validos} sub={`${fmtPct1(pct(validos, totalVotos))} dos votos`} cor="#2a78d6" />
@@ -132,6 +417,17 @@ export default function PlacarPage({ query }) {
         <CartaoNumero icon={CircleSlash} rotulo="Brancos e nulos" valor={st[S.br] + nulosSt(st)} sub={`${fmtPct1(pct(st[S.br] + nulosSt(st), totalVotos))} dos votos`} cor="#898781" />
         <CartaoNumero icon={UserX} rotulo="Abstenção" valor={st[S.abst]} sub={`${fmtPct1(pct(st[S.abst], st[S.aptos]))} dos aptos`} cor="#eb6834" />
       </div>
+
+      {!lista && (
+        <div className="card p-4 text-sm flex gap-3"><Info className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
+          <div>
+            O TSE publica os votos de cada deputado por município e por urna (no boletim de urna). Para este recorte, os números acima mostram o comparecimento e os votos válidos.{' '}
+            {nivel === 'secao'
+              ? <>Os votos por candidato desta urna estão no <a className="link font-medium" href={analise}>boletim de urna</a>.</>
+              : <>Veja os candidatos no <a className="link font-medium" href={rotas.placar({ uf, m: cd, c: cargo })}>total de {nomeMun}</a> ou abra uma seção abaixo.</>}
+          </div>
+        </div>
+      )}
 
       {podio.length > 0 && (
         <div className={`grid gap-3 sm:gap-4 grid-cols-1 ${podio.length === 3 ? 'sm:grid-cols-3 sm:items-end' : podio.length === 2 ? 'sm:grid-cols-2' : ''}`}>
@@ -141,12 +437,12 @@ export default function PlacarPage({ query }) {
           })}
         </div>
       )}
-      {cargo === 5 && <p className="text-xs muted text-center">Senado 2026: duas vagas por estado e dois votos por eleitor — os percentuais somam 200%.</p>}
+      {cargo === 5 && lista && <p className="text-xs muted text-center">Senado 2026: duas vagas por estado e dois votos por eleitor — os percentuais somam 200%.</p>}
 
-      {(resto.length > 0 || prop) && (
+      {lista && (resto.length > 0 || (prop && eleitos.length > 0)) && (
         <section className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">{prop && filtro === 'eleitos' ? `Demais eleitos (${eleitos.length} no total)` : 'Demais candidatos'}</h2>
+            <h2 className="text-base font-semibold">{prop && filtro === 'eleitos' && eleitos.length ? `Demais eleitos (${eleitos.length} no total)` : 'Demais candidatos'}</h2>
             {prop && eleitos.length > 0 && (
               <Seg size="xs" value={filtro} onChange={v => { setFiltro(v); setQtd(24); }} options={[{ value: 'eleitos', label: `Eleitos (${eleitos.length})` }, { value: 'todos', label: `Todos (${lista.length})` }]} />
             )}
@@ -160,7 +456,21 @@ export default function PlacarPage({ query }) {
           {resto.length > qtd && <button className="btn w-full justify-center" onClick={() => setQtd(q => q + 48)}>Mostrar mais ({fmt(resto.length - qtd)})</button>}
         </section>
       )}
-      <p className="text-xs muted">Fotos e números oficiais publicados pelo TSE. Percentuais sobre os votos válidos{prop ? ' (nominais + legenda)' : ''}. Toque num candidato para ver a votação por município.</p>
+
+      {nivel !== 'secao' && (
+        <GradeLugares
+          key={`${chaveEscopo}|${cargo}|${mostrarZonas ? 'z' : 'l'}`}
+          titulo={mostrarZonas ? 'Zonas eleitorais' : tituloFilhos}
+          itens={mostrarZonas ? filhosZonas : filhos}
+          ordemInicial={nivel === 'local' || mostrarZonas ? 'nome' : 'aptos'}
+          alternativa={nivel === 'mun' && filhosZonas ? <Seg size="xs" value={abaMun} onChange={setAbaMun} options={[{ value: 'locais', label: 'Locais' }, { value: 'zonas', label: `Zonas (${filhosZonas.length})` }]} /> : null}
+        />
+      )}
+
+      <p className="text-xs muted">
+        Fotos e números oficiais publicados pelo TSE. Percentuais sobre os votos válidos{prop ? ' (nominais + legenda)' : ''}.
+        {nivel === 'br' || nivel === 'uf' ? '' : ' Abaixo do estado, os votos são a soma das urnas do recorte.'} Toque num candidato para ver onde ele foi votado, ou num lugar para descer até a urna.
+      </p>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 // Peças visuais das telas "Placar" e "Destaques": foto oficial do candidato, número animado e cartões.
 import React, { useEffect, useRef, useState } from 'react';
 import { urlFoto } from '../lib/tse';
-import { fmt } from '../lib/format';
+import { fmt, fmtPct } from '../lib/format';
 
 const iniciais = nome => (nome || '?').split(/\s+/).filter(w => w.length > 2 || /^[A-Z]{1,2}$/.test(w)).slice(0, 2).map(w => w[0]).join('') || (nome || '?')[0];
 
@@ -72,5 +72,52 @@ export function CartaoNumero({ icon: I, rotulo, valor, formato, sub, cor = 'var(
         {sub && <div className="text-xs ink-2 mt-0.5">{sub}</div>}
       </div>
     </div>
+  );
+}
+
+/** Barra empilhada com a fatia de cada candidato (cores do candidato; demais em cinza). */
+export function BarraComposicao({ fatias, total, altura = 8 }) {
+  if (!total) return null;
+  return (
+    <div className="w-full flex rounded-full overflow-hidden gap-[2px]" style={{ height: altura, background: 'var(--surface-2)' }}>
+      {fatias.filter(f => f.votos > 0).map(f => (
+        <div key={f.key} title={f.titulo} style={{ width: `${(f.votos / total) * 100}%`, background: f.cor, minWidth: 2 }} />
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Cartão de um lugar (UF, município, zona, local ou seção): quem venceu ali, com foto,
+ * a divisão dos votos e o comparecimento.
+ */
+export function CartaoUnidade({ href, nome, sub, aptos, comp, lider, fatias, total, selo }) {
+  return (
+    <a href={href} className="card p-3 flex flex-col gap-2.5 hover:-translate-y-0.5 transition-transform min-w-0">
+      <div className="flex items-start justify-between gap-2 min-w-0">
+        <div className="min-w-0">
+          <div className="font-semibold text-sm leading-snug line-clamp-2">{nome}</div>
+          {sub && <div className="text-xs muted truncate">{sub}</div>}
+        </div>
+        {selo}
+      </div>
+      {lider ? (
+        <div className="flex items-center gap-2.5 min-w-0">
+          <FotoCandidato cargo={lider.cargo} uf={lider.uf} sq={lider.sq} nome={lider.nome} cor={lider.cor} size={40} />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-sm font-medium truncate">{lider.nome}</span>
+              <span className="font-bold num shrink-0" style={{ color: lider.cor }}>{fmtPct(lider.pct, 1)}</span>
+            </div>
+            <div className="text-xs muted truncate">{lider.rotulo || 'mais votado'} · {fmt(lider.votos)} votos</div>
+          </div>
+        </div>
+      ) : null}
+      {fatias ? <BarraComposicao fatias={fatias} total={total} /> : lider ? <BarraGrossa pct={lider.pct} cor={lider.cor} altura={6} /> : null}
+      <div className="text-xs muted flex justify-between gap-2 mt-auto">
+        <span className="num">{fmt(aptos)} aptos</span>
+        <span className="num">Comparec. {fmtPct(aptos ? (comp / aptos) * 100 : null, 1)}</span>
+      </div>
+    </a>
   );
 }
