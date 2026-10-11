@@ -7,6 +7,8 @@ export const TSE = 'https://resultados.tse.jus.br/oficial';
 export const PLEITO = 3220;
 export const ELEICAO = { federal: 6257, estadual: 6259 };
 export const eleicaoDoCargo = cargo => (+cargo === 1 ? ELEICAO.federal : ELEICAO.estadual);
+/** Foto oficial publicada pelo TSE na divulgação de resultados (sq = SQ_CANDIDATO). */
+export const urlFoto = (cargo, uf, sq) => (sq ? `${TSE}/ele2026/${eleicaoDoCargo(cargo)}/fotos/${+cargo === 1 ? 'br' : String(uf).toLowerCase()}/${sq}.jpeg` : null);
 
 export function dirSecao(uf, cd, z, s) {
   return `${TSE}/ele2026/arquivo-urna/${PLEITO}/dados/${uf.toLowerCase()}/${cd}/${pad(z)}/${pad(s)}`;

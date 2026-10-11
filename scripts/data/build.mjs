@@ -36,8 +36,9 @@ const CARGOS_DEP = [6, 7, 8];
 // Índices 0-7 vêm do detalhe por seção; 8-10 são calculados a partir dos votos por candidato e da situação
 // de cada candidatura na totalização oficial (nominais = votos digitados para candidatos, como no BU).
 const ST = ['aptos', 'comparecimento', 'abstencoes', 'nominais', 'brancos', 'nulos', 'legenda', 'anuladosApuSep', 'nulosTecnicos', 'anuladosSubJudice', 'anulados'];
-// Na totalização, votos em candidaturas "Anulado" também são somados aos anulados sub judice (vansj).
-const SITUACAO_IDX = { 'Anulado sub judice': 9, Anulado: 9 };
+// Situação na totalização -> índice: sub judice soma em vansj; "Anulado" (decisão definitiva) soma em van
+// (até 09/10 o TSE somava os dois em vansj; o JSON atualizado em 10/10 separa — o validador confere).
+const SITUACAO_IDX = { 'Anulado sub judice': 9, Anulado: 10 };
 
 const int = s => {
   const v = parseInt(s, 10);

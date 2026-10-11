@@ -49,5 +49,7 @@ export const rotas = {
   auditoria: () => href(['auditoria']),
   localizar: (q) => href(['localizar'], q),
   buscar: (q) => href(['buscar'], q),
+  placar: (q) => href(['placar'], q),
+  destaques: () => href(['destaques']),
   candidato: (uf, cargo, n) => href(['candidato', uf, cargo, n])
 };

@@ -21,7 +21,7 @@ export function situacao(resultado) {
 export const eleitoOuTurno2 = resultado => ['eleito', 'turno2'].includes(situacao(resultado));
 
 // ---------------------------------------------------------------- candidatos
-const CAMPOS = ['cargo', 'uf', 'n', 'nome', 'nomeCompleto', 'partido', 'resultado', 'votos'];
+const CAMPOS = ['cargo', 'uf', 'n', 'nome', 'nomeCompleto', 'partido', 'resultado', 'votos', 'sq', 'votoValido'];
 let candCache = null;
 export function carregarCandidatos() {
   if (!candCache) {
@@ -153,3 +153,11 @@ export async function buscarLocais(q, municipios, { limite = 60, nomesMun } = {}
 export const hrefLocal = l => rotas.mun(l.uf, l.cd, { tab: 'secoes', zona: l.z, local: `${l.z}-${l.n}` });
 export const subLocal = l => [titulo(l.end), titulo(l.bairro), `${l.mun} – ${l.uf}`, `Zona ${pad(l.z)}`, `${l.nSec} seç${l.nSec === 1 ? 'ão' : 'ões'}`].filter(Boolean).join(' · ');
 export const subCandidato = c => [`${cargoNome(c.cargo)} · ${rotuloUfCand(c)}`, c.partido, `nº ${c.n}`, `${c.votos.toLocaleString('pt-BR')} votos`].join(' · ');
+
+/** Índice cargo|uf|nº -> candidatura (com o código sq da foto). */
+let porChaveCache = null;
+export function carregarCandidatosPorChave() {
+  if (!porChaveCache) porChaveCache = carregarCandidatos().then(l => new Map(l.map(c => [`${c.cargo}|${c.uf}|${c.n}`, c])));
+  return porChaveCache;
+}
+export const chaveCand = (cargo, uf, n) => `${cargo}|${+cargo === 1 ? 'BR' : uf}|${n}`;

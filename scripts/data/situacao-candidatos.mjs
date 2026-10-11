@@ -24,7 +24,7 @@ await pool(tarefas, 12, async t => {
   for (const a of j.carg[0].agr || []) {
     for (const p of a.par || []) {
       if (p.dvt) partidos[+p.n] = { dvt: p.dvt, legenda: +(p.tval || p.tvtl || 0) };
-      for (const c of p.cand || []) cands[+c.n] = { dvt: c.dvt, st: c.st, vap: +c.vap };
+      for (const c of p.cand || []) cands[+c.n] = { dvt: c.dvt, st: c.st, vap: +c.vap, sq: c.sqcand };
     }
   }
   out.cargos[`${t.cargo}|${t.ue}`] = { dg: `${j.dg} ${j.hg}`, v: j.v, cands, partidos };

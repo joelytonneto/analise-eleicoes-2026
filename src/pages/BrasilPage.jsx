@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ShieldCheck, Crosshair } from 'lucide-react';
+import { ShieldCheck, Crosshair, Sparkles, Trophy, ChevronRight } from 'lucide-react';
 import { useAsync, Card, Loading, ErrorBox, Seg, useIsMobile } from '../components/ui';
 import { RankBars } from '../components/charts';
 import { vencedor } from '../lib/metricasMapa';
@@ -142,6 +142,18 @@ export default function BrasilPage() {
         </div>
       </div>
       <SeloAuditoria />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <a href={rotas.destaques()} className="card p-4 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
+          <span className="w-10 h-10 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #256abf, #1baf7a)' }}><Sparkles className="w-5 h-5" /></span>
+          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Destaques da eleição</span><span className="block text-xs muted">Recordistas de votos, bancadas eleitas e o resumo de cada estado</span></span>
+          <ChevronRight className="w-4 h-4 muted shrink-0" />
+        </a>
+        <a href={rotas.placar()} className="card p-4 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
+          <span className="w-10 h-10 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #2a78d6, #6250d6)' }}><Trophy className="w-5 h-5" /></span>
+          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Placar com fotos</span><span className="block text-xs muted">Votos de cada candidato, de todos os cargos e estados</span></span>
+          <ChevronRight className="w-4 h-4 muted shrink-0" />
+        </a>
+      </div>
       <Indicadores st={st} cargo={1} />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card title="Resultado nacional" subtitle="Votos nominais por candidato" className="lg:col-span-2">
