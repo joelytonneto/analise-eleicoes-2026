@@ -8,6 +8,49 @@ import { carregarCandidatos, eleitoOuTurno2, subLocal, subCandidato, hrefCandida
 import { corPorIndice, OUTROS } from '../lib/colors';
 import { fmt, fmtPct, pct, titulo, pad, semAcento } from '../lib/format';
 import { rotas, setQuery } from '../lib/router';
+import { baixarBoletim } from '../lib/tse';
+
+// ---------------------------------------------------------------- votos de deputado por urna (boletins de urna do TSE)
+// O TSE não publica o voto de cada deputado por zona, local ou seção na totalização: esse dado está só no
+// boletim de urna (BU). Para esses recortes o Placar baixa os BUs do TSE e soma os votos, como a página da seção.
+const LIMITE_AUTOMATICO = 80; // acima disso de urnas, a leitura começa só quando a pessoa pede
+const CARGOS_DEP = [6, 7, 8];
+const cacheBU = new Map();
+function lerVotosDeputados(uf, cd, z, s) {
+  const k = `${uf}-${cd}-${z}-${s}`;
+  if (!cacheBU.has(k)) {
+    cacheBU.set(k, baixarBoletim(uf, cd, z, s).then(r => {
+      const o = {};
+      for (const cg of CARGOS_DEP) if (r.resumo[cg]) o[cg] = { votos: r.resumo[cg].votos, nominais: r.resumo[cg].nominais, legenda: r.resumo[cg].legenda };
+      return o;
+    }).catch(e => { cacheBU.delete(k); throw e; }));
+  }
+  return cacheBU.get(k);
+}
+
+/** Lê os BUs das urnas (6 por vez) e devolve o progresso e os votos por urna (chave "zona-seção"). */
+function useBoletins(uf, cd, urnas, ativo) {
+  const [r, setR] = useState({ urnas: null, res: new Map(), feitos: 0, falhas: 0 });
+  useEffect(() => {
+    if (!ativo || !urnas?.length) return undefined;
+    let vivo = true, i = 0, feitos = 0, falhas = 0, ultimo = 0;
+    const res = new Map();
+    const publicar = () => { if (vivo) setR({ urnas, res: new Map(res), feitos, falhas }); };
+    setR({ urnas, res: new Map(), feitos: 0, falhas: 0 });
+    const trabalhador = async () => {
+      while (vivo && i < urnas.length) {
+        const x = urnas[i++];
+        try { res.set(`${x.z}-${x.s}`, await lerVotosDeputados(uf, cd, x.z, x.s)); } catch { falhas++; }
+        feitos++;
+        if (feitos === urnas.length || Date.now() - ultimo > 250) { ultimo = Date.now(); publicar(); }
+      }
+    };
+    Promise.all(Array.from({ length: 6 }, trabalhador));
+    return () => { vivo = false; };
+  }, [uf, cd, urnas, ativo]);
+  const atual = r.urnas === urnas;
+  return { res: atual ? r.res : new Map(), feitos: atual ? r.feitos : 0, falhas: atual ? r.falhas : 0, total: urnas?.length || 0, pronto: atual && !!urnas?.length && r.feitos >= urnas.length };
+}
 
 const fmtPct1 = v => fmtPct(v, 1);
 
@@ -179,10 +222,11 @@ export default function PlacarPage({ query }) {
   const disp = cargosDaUf(uf || null);
   const cargo = disp.some(c => c.id === +query.c) ? +query.c : uf && uf !== 'ZZ' ? 3 : 1;
   const prop = cargo >= 6;
-  const precisaDep = prop && (nivel === 'uf' || nivel === 'mun');
+  const precisaDep = prop && nivel !== 'br';
   const [filtro, setFiltro] = useState('eleitos');
   const [qtd, setQtd] = useState(24);
   const [abaMun, setAbaMun] = useState('locais');
+  const [pediuBU, setPediuBU] = useState('');
   const chaveEscopo = `${uf}|${cd}|${z}|${l}|${s}`;
   useEffect(() => { setQtd(24); window.scrollTo(0, 0); }, [chaveEscopo]);
 
@@ -228,9 +272,26 @@ export default function PlacarPage({ query }) {
       if (bi < 0) return {};
       return { lider: { ...info(ref[bi]), votos: bv, pct: pct(bv, validosSt(stU)), cor: corDe(ref[bi].n), rotulo: 'deputado mais votado' } };
     };
+    const porNum = new Map(ref.map(c => [+c.n, c]));
+    const somarBU = (secs, res) => {
+      const soma = new Map();
+      for (const x of secs) {
+        const b = res.get(`${x.z}-${x.s}`)?.[cargo];
+        if (b) for (const [n, q] of Object.entries(b.votos)) soma.set(+n, (soma.get(+n) || 0) + q);
+      }
+      return soma;
+    };
+    // a partir dos BUs: só números de candidatos reconhecidos e com voto válido (o resto é nulo técnico/anulado)
+    const listaBU = soma => [...soma].filter(([n]) => porNum.has(n) && !idx.get(n)?.votoValido).map(([n, q]) => ({ ...info(porNum.get(n)), votos: q }));
+    const liderBU = (secs, res, stU) => {
+      let bn = null, bv = 0;
+      for (const [n, q] of somarBU(secs, res)) if (q > bv && porNum.has(n) && !idx.get(n)?.votoValido) { bv = q; bn = n; }
+      if (bn == null) return {};
+      return { lider: { ...info(porNum.get(bn)), votos: bv, pct: pct(bv, validosSt(stU)), cor: corDe(bn), rotulo: 'deputado mais votado' } };
+    };
     const unidade = (u, extra) => ({ aptos: u.st?.[S.aptos] || 0, comp: u.st?.[S.comp] || 0, ...extra });
 
-    let st, lista = null, filhos = [], filhosZonas = null, extra = {};
+    let st, lista = null, filhos = [], filhosZonas = null, extra = {}, urnas = null;
     const m = cd ? ud?.mun.find(x => x.cd === cd) : null;
     if (cd && !m) return { erro: `Município ${cd} não encontrado em ${UF_NOMES[uf]}.` };
     const nomeMun = m ? titulo(m.nome) : '';
@@ -257,7 +318,7 @@ export default function PlacarPage({ query }) {
       const cartaoLocal = u => unidade({ st: u.st[cargo] }, {
         key: `${u.z}-${u.local.n}`, nome: titulo(u.local.nome),
         sub: [titulo(u.local.end), titulo(u.local.bairro), `Zona ${pad(u.z)}`, `${u.nSecoes} seç${u.nSecoes === 1 ? 'ão' : 'ões'}`].filter(Boolean).join(' · '),
-        href: rotas.placar({ uf, m: cd, z: u.z, l: u.local.n, c: cargo }), ...(prop ? {} : resumoVetor(u.v[cargo], u.st[cargo]))
+        href: rotas.placar({ uf, m: cd, z: u.z, l: u.local.n, c: cargo }), ...(prop ? { _secoes: u.secoes.filter(x => x.st?.[cargo]), _st: u.st[cargo] } : resumoVetor(u.v[cargo], u.st[cargo]))
       });
       if (nivel === 'mun') {
         st = m.st[cargo];
@@ -290,13 +351,14 @@ export default function PlacarPage({ query }) {
         const [agg] = agrupar(sel.map(x => ({ ...x, z: 0, local: { n: 0 } })), 'zona');
         st = agg?.st[cargo];
         lista = prop ? null : agg ? deVetor(agg.v[cargo]) : [];
+        if (prop) urnas = sel.filter(x => x.st?.[cargo]);
         if (nivel === 'zona') {
           filhos = agrupar(sel, 'local').filter(u => u.st[cargo]).map(cartaoLocal);
           extra.sub = `${fmt(new Set(sel.map(x => x.local?.n)).size)} locais · ${fmt(agg?.nSecoes || 0)} seções · ${nomeMun} – ${uf}`;
         } else if (nivel === 'local') {
           filhos = sel.filter(x => x.st?.[cargo]).map(x => unidade({ st: x.st[cargo] }, {
             key: x.s, nome: `Seção ${pad(x.s)}`, ordemNome: pad(x.s), sub: x.agr ? `Agrega a(s) seção(ões) ${x.agr.map(a => pad(a)).join(', ')}` : x.m ? `Urna ${x.m}` : null,
-            href: rotas.placar({ uf, m: cd, z, s: x.s, c: cargo }), ...(prop ? {} : resumoVetor(x.v?.[cargo], x.st[cargo]))
+            href: rotas.placar({ uf, m: cd, z, s: x.s, c: cargo }), ...(prop ? { _secoes: [x], _st: x.st[cargo] } : resumoVetor(x.v?.[cargo], x.st[cargo]))
           }));
           const loc = extra.local;
           extra.sub = [titulo(loc?.end), titulo(loc?.bairro), `${nomeMun} – ${uf}`, `Zona ${pad(z)}`].filter(Boolean).join(' · ');
@@ -309,8 +371,22 @@ export default function PlacarPage({ query }) {
     if (lista) {
       lista = lista.filter(c => !c.votoValido && (nivel === 'br' || nivel === 'uf' || !prop || c.votos > 0)).sort((a, b) => b.votos - a.votos);
     }
-    return { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos: validosSt(st) };
+    return { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos: validosSt(st), urnas, somarBU, listaBU, liderBU };
   }, [data, cargo, prop, uf, cd, z, l, s, nivel]);
+
+  const urnas = ctx?.urnas || null;
+  const chaveBU = `${chaveEscopo}|${cargo}`;
+  const autoBU = !!urnas && (urnas.length <= LIMITE_AUTOMATICO || pediuBU === chaveBU);
+  const bus = useBoletins(uf, cd, urnas, autoBU);
+  const doBU = useMemo(() => {
+    if (!urnas || !bus.feitos) return null;
+    const soma = ctx.somarBU(urnas, bus.res);
+    let nominaisBU = 0;
+    for (const x of urnas) nominaisBU += bus.res.get(`${x.z}-${x.s}`)?.[cargo]?.nominais || 0;
+    const lista = ctx.listaBU(soma).sort((a, b) => b.votos - a.votos);
+    const filhos = ctx.filhos.map(f => (f._secoes ? { ...f, ...ctx.liderBU(f._secoes, bus.res, f._st) } : f));
+    return { lista, filhos, nominaisBU };
+  }, [ctx, urnas, bus.res, bus.feitos, cargo]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorBox error={error} />;
@@ -329,7 +405,10 @@ export default function PlacarPage({ query }) {
 
   if (ctx?.erro) return <div className="space-y-4">{controles}<ErrorBox>{ctx.erro}</ErrorBox></div>;
 
-  const { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos } = ctx;
+  const { st, filhosZonas, nomeMun, corDe, extra, validos } = ctx;
+  const viaBU = !!urnas && bus.pronto && !!doBU;
+  const lista = ctx.lista || (viaBU ? doBU.lista : null);
+  const filhos = viaBU ? doBU.filhos : ctx.filhos;
   const local = extra.local;
   const nomeEscopo = {
     br: 'Brasil', uf: UF_NOMES[uf], mun: `${nomeMun} – ${uf}`, zona: `Zona ${pad(z)} · ${nomeMun}`,
@@ -418,15 +497,34 @@ export default function PlacarPage({ query }) {
         <CartaoNumero icon={UserX} rotulo="Abstenção" valor={st[S.abst]} sub={`${fmtPct1(pct(st[S.abst], st[S.aptos]))} dos aptos`} cor="#eb6834" />
       </div>
 
-      {!lista && (
+      {urnas && !bus.pronto && (
         <div className="card p-4 text-sm flex gap-3"><Info className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
-          <div>
-            O TSE publica os votos de cada deputado por município e por urna (no boletim de urna). Para este recorte, os números acima mostram o comparecimento e os votos válidos.{' '}
-            {nivel === 'secao'
-              ? <>Os votos por candidato desta urna estão no <a className="link font-medium" href={analise}>boletim de urna</a>.</>
-              : <>Veja os candidatos no <a className="link font-medium" href={rotas.placar({ uf, m: cd, c: cargo })}>total de {nomeMun}</a> ou abra uma seção abaixo.</>}
+          <div className="min-w-0 flex-1 space-y-2">
+            <div>
+              O TSE publica o voto de cada deputado por urna só no <b>boletim de urna</b>. {autoBU
+                ? <>Lendo os boletins no site do TSE: <b className="num">{fmt(bus.feitos)}</b> de <b className="num">{fmt(bus.total)}</b> urna{bus.total === 1 ? '' : 's'}…</>
+                : <>Este recorte tem <b className="num">{fmt(urnas.length)}</b> urnas; a leitura de todos os boletins pode levar alguns minutos.</>}
+            </div>
+            {autoBU
+              ? <BarraGrossa pct={bus.total ? (bus.feitos / bus.total) * 100 : 0} cor="var(--accent)" altura={8} />
+              : <button className="btn btn-primary" onClick={() => setPediuBU(chaveBU)}><FileText className="w-4 h-4" /> Ler os {fmt(urnas.length)} boletins de urna</button>}
           </div>
         </div>
+      )}
+      {urnas && !urnas.length && (
+        <ErrorBox>Não há urna com votação de {cargoNome(cargo)} neste recorte.</ErrorBox>
+      )}
+      {viaBU && (
+        <p className="text-xs muted flex items-start gap-1.5">
+          <FileText className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+          <span>
+            Votos por deputado lidos agora {bus.total - bus.falhas === 1 ? 'do boletim de urna publicado' : <>dos {fmt(bus.total - bus.falhas)} boletins de urna publicados</>} pelo TSE
+            {bus.falhas ? <> — <b style={{ color: 'var(--bad)' }}>{fmt(bus.falhas)} boletim(ns) não puderam ser baixados</b>; recarregue a página para tentar de novo</> : null}.
+            {' '}{!bus.falhas && doBU.nominaisBU === st[S.nom]
+              ? <span style={{ color: 'var(--ok)' }}>✓ Soma dos votos nominais ({fmt(doBU.nominaisBU)}) confere com a totalização.</span>
+              : !bus.falhas ? <span style={{ color: 'var(--warn)' }}>Votos nominais nos BUs: {fmt(doBU.nominaisBU)}; na totalização: {fmt(st[S.nom])}.</span> : null}
+          </span>
+        </p>
       )}
 
       {podio.length > 0 && (
