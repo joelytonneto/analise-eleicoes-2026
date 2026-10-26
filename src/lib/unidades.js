@@ -2,7 +2,8 @@
 // Identificador textual: br | uf:CE | mun:CE:13480 | zona:CE:13480:78 | local:CE:13480:78:1082 | secao:CE:13480:78:393
 import { loadBrasil, loadUf, loadMun, somarSt, somarV, UF_NOMES } from './data';
 import { titulo, pad } from './format';
-import { rotas } from './router';
+import { rotas, getTurno } from './router';
+import { baixarBoletim } from './tse';
 
 export const idSecao = (uf, cd, z, s) => `secao:${uf}:${cd}:${z}:${s}`;
 export const idLocal = (uf, cd, z, n) => `local:${uf}:${cd}:${z}:${n}`;
@@ -12,13 +13,13 @@ export const idUf = uf => `uf:${uf}`;
 
 export const TIPO_NOME = { br: 'País', uf: 'UF', mun: 'Município', zona: 'Zona', local: 'Local de votação', secao: 'Seção' };
 
-export async function carregarUnidade(id) {
+export async function carregarUnidade(id, turno = getTurno()) {
   const [tipo, uf, cd, z, n] = id.split(':');
-  const brasil = await loadBrasil();
+  const brasil = await loadBrasil(turno);
   if (tipo === 'br') {
     return { id, tipo, nome: 'Brasil', sub: 'Total nacional (inclui exterior)', st: brasil.total.st, v: brasil.total.v, cand: { 1: brasil.cand[1] }, href: rotas.brasil() };
   }
-  const ud = await loadUf(uf);
+  const ud = await loadUf(uf, turno);
   const cand = { 1: brasil.cand[1], 3: ud.cand[3], 5: ud.cand[5] };
   if (tipo === 'uf') {
     const r = brasil.ufs.find(u => u.uf === uf);
@@ -30,24 +31,39 @@ export async function carregarUnidade(id) {
   if (tipo === 'mun') {
     return { id, tipo, uf, cd, nome: munNome, sub: `${m.zonas.length} zona(s) · ${m.nSecoes.toLocaleString('pt-BR')} seções`, st: m.st, v: m.v, cand, nSecoes: m.nSecoes, eleitorado: m.eleitorado, lat: m.lat, lng: m.lng, href: rotas.mun(uf, cd) };
   }
-  const mf = await loadMun(uf, cd);
+  const mf = await loadMun(uf, cd, turno);
   const zona = +z;
   if (tipo === 'secao') {
     const s = mf.secoes.find(x => x.z === zona && x.s === +n);
     if (!s) throw new Error(`Seção ${pad(n)} da zona ${pad(z)} não existe em ${munNome}`);
     const loc = mf.locais[s.l];
+    let st = s.st || {};
+    let v = s.v || {};
+    if (!s.st && !s.ag) {
+      try {
+        const bu = await baixarBoletim(uf, cd, zona, s.s, { turno });
+        for (const [cg, resCg] of Object.entries(bu.resumo || {})) {
+          st[cg] = [resCg.aptos, resCg.comparecimento, resCg.aptos - resCg.comparecimento, resCg.nominais, resCg.brancos, resCg.nulos, resCg.legenda || 0, 0, 0, 0, 0];
+          if (mf.cand?.[cg]) v[cg] = mf.cand[cg].map(num => resCg.votos[num] || 0);
+        }
+      } catch { /* ignore */ }
+    }
     return {
       id, tipo, uf, cd, z: zona, s: s.s, nome: `Seção ${pad(s.s)} · Zona ${pad(zona)}`, sub: `${munNome} · ${titulo(loc?.nome || '')}`,
-      st: s.st || {}, v: s.v || {}, cand, nSecoes: s.st ? 1 : 0, eleitorado: s.el, secao: s, local: loc, lat: loc?.lat, lng: loc?.lng,
+      st, v, cand, nSecoes: Object.keys(st).length ? 1 : 0, eleitorado: s.el, secao: s, local: loc, lat: loc?.lat, lng: loc?.lng,
       href: rotas.secao(uf, cd, zona, s.s), agregada: !!s.ag, principal: s.p
     };
   }
   const secs = mf.secoes.filter(s => s.z === zona && (tipo === 'zona' || mf.locais[s.l]?.n === +n));
   if (!secs.length) throw new Error(`${TIPO_NOME[tipo]} não encontrado(a)`);
-  const st = {}, v = {};
+  let st = {}, v = {};
   let el = 0, ns = 0;
-  for (const s of secs) { if (s.st) { somarSt(st, s.st); somarV(v, s.v); ns++; } el += s.el || 0; }
+  for (const s of secs) { if (s.st) { somarSt(st, s.st); somarV(v, s.v); } if (!s.ag) { ns++; el += s.el || 0; } }
   if (tipo === 'zona') {
+    if (mf.zonasTotais?.[zona]) {
+      st = mf.zonasTotais[zona].st;
+      v = mf.zonasTotais[zona].v;
+    }
     return { id, tipo, uf, cd, z: zona, nome: `Zona ${pad(zona)}`, sub: munNome, st, v, cand, nSecoes: ns, eleitorado: el, href: rotas.mun(uf, cd, { tab: 'secoes', zona }) };
   }
   const loc = mf.locais[secs[0].l];

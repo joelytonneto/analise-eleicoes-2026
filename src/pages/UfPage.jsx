@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Trophy } from 'lucide-react';
-import { useAsync, Card, Loading, ErrorBox } from '../components/ui';
+import { useAsync, Card, Loading, ErrorBox, Seg } from '../components/ui';
 import { Indicadores, ComposicaoVotos, ResultadoCandidatos, CargoPicker, useCargo } from '../components/Resultado';
 import MapaResultado from '../components/MapaResultado';
 import DataTable from '../components/DataTable';
@@ -9,7 +9,7 @@ import { BotaoComparar } from '../components/Comparacao';
 import { loadBrasil, loadUf, loadDep, loadGeoUf, UF_NOMES, S, cargoNome, validosSt, nulosSt } from '../lib/data';
 import { itensDeVetor, itensDeputadosUf } from '../lib/resultados';
 import { fmt, fmtPct, pct, titulo } from '../lib/format';
-import { rotas } from '../lib/router';
+import { rotas, useTurno } from '../lib/router';
 import { urlDivulgacao } from '../lib/tse';
 import { idUf } from '../lib/unidades';
 
@@ -38,18 +38,20 @@ export function vetoresDeputados(dep, cargo, muns) {
 }
 
 export default function UfPage({ uf, query }) {
+  const [turno, setTurno] = useTurno();
   const [cargo, disp] = useCargo(query, uf);
-  const dep = cargo >= 6;
+  const dep = cargo >= 6 && turno === 1;
   const { data, loading, error } = useAsync(
-    () => Promise.all([loadBrasil(), loadUf(uf), uf !== 'ZZ' ? loadGeoUf(uf).catch(() => null) : null, dep ? loadDep(uf) : null]),
-    [uf, dep]
+    () => Promise.all([loadBrasil(turno), loadUf(uf, turno), uf !== 'ZZ' ? loadGeoUf(uf).catch(() => null) : null, dep ? loadDep(uf) : null]),
+    [uf, dep, turno]
   );
   const [brasil, ud, geo, depData] = data || [];
 
   const ctx = useMemo(() => {
     if (!ud || (dep && !depData)) return null;
     const resumo = brasil.ufs.find(u => u.uf === uf);
-    const st = resumo.st[cargo];
+    const st = resumo?.st?.[cargo];
+    if (!st) return null;
     if (dep) {
       const { candRef, v } = vetoresDeputados(depData, cargo, ud.mun);
       return { resumo, st, itens: itensDeputadosUf(depData, cargo), candRef, vMun: cd => v.get(cd) };
@@ -65,7 +67,7 @@ export default function UfPage({ uf, query }) {
 
   if (loading) return <Loading />;
   if (error) return <ErrorBox error={error} />;
-  if (!ctx?.st) return <ErrorBox>Não há votação de {cargoNome(cargo)} em {UF_NOMES[uf]}.</ErrorBox>;
+  if (!ctx?.st) return <ErrorBox>Não há votação de {cargoNome(cargo)} em {UF_NOMES[uf]} no {turno}º Turno.</ErrorBox>;
 
   const top = ctx.candRef.slice(0, 3);
   const linhas = unidades.map(u => ({ ...u, m: ud.mun.find(x => x.cd === u.cd) }));
@@ -88,8 +90,19 @@ export default function UfPage({ uf, query }) {
       <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, { label: UF_NOMES[uf] }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">{UF_NOMES[uf]} · {cargoNome(cargo)}</h1>
-          <p className="text-sm ink-2">{fmt(ctx.resumo.nMun)} {uf === 'ZZ' ? 'cidades' : 'municípios'} · {fmt(ctx.resumo.nZonas)} zonas · {fmt(ctx.resumo.nLocais)} locais · {fmt(ctx.resumo.nSecoes)} seções com urna</p>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-semibold">{UF_NOMES[uf]} · {cargoNome(cargo)} ({turno}º Turno)</h1>
+            <Seg
+              size="xs"
+              value={String(turno)}
+              onChange={v => setTurno(+v)}
+              options={[
+                { value: '2', label: '2º Turno' },
+                { value: '1', label: '1º Turno' }
+              ]}
+            />
+          </div>
+          <p className="text-sm ink-2 mt-0.5">{turno}º turno · {turno === 1 ? '04/10/2026' : '25/10/2026'} · {fmt(ctx.resumo.nMun)} {uf === 'ZZ' ? 'cidades' : 'municípios'} · {fmt(ctx.resumo.nZonas)} zonas · {fmt(ctx.resumo.nLocais)} locais · {fmt(ctx.resumo.nSecoes)} seções com urna</p>
         </div>
         <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           <CargoPicker cargo={cargo} disponiveis={disp} />
@@ -100,8 +113,8 @@ export default function UfPage({ uf, query }) {
       <Indicadores st={ctx.st} cargo={cargo} />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
         <Card
-          title={`Resultado · ${cargoNome(cargo)}`}
-          subtitle={<>Totalização a partir das seções · <a className="link" href={urlDivulgacao(uf, null, cargo)} target="_blank" rel="noreferrer">JSON oficial do TSE</a></>}
+          title={`Resultado · ${cargoNome(cargo)} (${turno}º Turno)`}
+          subtitle={<>Totalização oficial · <a className="link" href={urlDivulgacao(uf, null, cargo, turno)} target="_blank" rel="noreferrer">JSON oficial do TSE</a></>}
           className="lg:col-span-2"
         >
           <ResultadoCandidatos itens={ctx.itens} st={ctx.st} cargo={cargo} max={dep ? 10 : 12} uf={uf} />
@@ -113,8 +126,8 @@ export default function UfPage({ uf, query }) {
             : <p className="text-sm muted">As seções no exterior não possuem coordenadas; use a tabela abaixo.</p>}
         </Card>
       </div>
-      <Card title={`${uf === 'ZZ' ? 'Cidades' : 'Municípios'} · ${cargoNome(cargo)}`} subtitle="Clique para abrir zonas, locais de votação e seções">
-        <DataTable linhas={linhas} colunas={colunas} rowKey={r => r.cd} ordemInicial={{ key: 'apt', dir: 'desc' }} nomeArquivo={`${uf}-${cargoNome(cargo)}-municipios`} onRowClick={r => { window.location.hash = rotas.mun(uf, r.cd, { c: cargo }); }} />
+      <Card title={`${uf === 'ZZ' ? 'Cidades' : 'Municípios'} · ${cargoNome(cargo)} (${turno}º Turno)`} subtitle="Clique para abrir zonas, locais de votação e seções">
+        <DataTable linhas={linhas} colunas={colunas} rowKey={r => r.cd} ordemInicial={{ key: 'apt', dir: 'desc' }} nomeArquivo={`${uf}-${turno}t-${cargoNome(cargo)}-municipios`} onRowClick={r => { window.location.hash = rotas.mun(uf, r.cd, { c: cargo }); }} />
       </Card>
     </div>
   );

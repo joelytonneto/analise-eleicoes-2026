@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ShieldCheck, Crosshair, Sparkles, Trophy, ChevronRight } from 'lucide-react';
+import { ShieldCheck, Crosshair, Sparkles, Trophy, ChevronRight, AlertTriangle, Clock } from 'lucide-react';
 import { useAsync, Card, Loading, ErrorBox, Seg, useIsMobile } from '../components/ui';
 import { RankBars } from '../components/charts';
 import { vencedor } from '../lib/metricasMapa';
@@ -11,10 +11,11 @@ import { BotaoComparar } from '../components/Comparacao';
 import { loadBrasil, loadGeoBrasil, loadValidacao, IBGE_UF, S, validosSt, nulosSt } from '../lib/data';
 import { itensDeVetor } from '../lib/resultados';
 import { fmt, fmtPct, pct } from '../lib/format';
-import { rotas } from '../lib/router';
+import { rotas, useTurno } from '../lib/router';
 
 export function SeloAuditoria() {
-  const { data: val } = useAsync(() => loadValidacao().catch(() => null), []);
+  const [turno] = useTurno();
+  const { data: val } = useAsync(() => loadValidacao(turno).catch(() => null), [turno]);
   if (!val) return null;
   const d = val.divulgacao, b = val.bu;
   const ok = val.resumo?.divulgacaoOk && val.resumo?.buOk && val.resumo?.consistenciaOk;
@@ -22,7 +23,7 @@ export function SeloAuditoria() {
     <a href={rotas.auditoria()} className="card px-4 py-3 flex items-start gap-3 hover:opacity-90">
       <ShieldCheck className="w-5 h-5 mt-0.5 shrink-0" style={{ color: ok ? 'var(--ok)' : 'var(--warn)' }} />
       <div className="text-sm">
-        <div className="font-medium">{ok ? 'Base conferida com o TSE' : 'Base conferida com o TSE — ver ressalvas'}</div>
+        <div className="font-medium">{ok ? `Base do ${turno}º Turno conferida com o TSE` : `Base do ${turno}º Turno conferida com o TSE — ver ressalvas`}</div>
         <div className="text-xs ink-2">
           {fmt(d.comparacoes)} números comparados com {fmt(d.arquivos)} arquivos oficiais de totalização ({fmt(d.divergencias.length)} divergência(s)) e {fmt(b.amostra)} boletins de urna originais decodificados ({fmt(b.secoesIguais)} idênticos).
         </div>
@@ -97,7 +98,8 @@ function AbstencaoPorUf({ brasil, candRef }) {
 }
 
 export default function BrasilPage() {
-  const { data, loading, error } = useAsync(() => Promise.all([loadBrasil(), loadGeoBrasil()]), []);
+  const [turno, setTurno] = useTurno();
+  const { data, loading, error } = useAsync(() => Promise.all([loadBrasil(turno), loadGeoBrasil()]), [turno]);
   const brasil = data?.[0], geo = data?.[1];
   const candRef = brasil?.cand[1];
 
@@ -113,6 +115,7 @@ export default function BrasilPage() {
   const nSecoes = brasil.ufs.reduce((a, u) => a + u.nSecoes, 0);
   const nLocais = brasil.ufs.reduce((a, u) => a + u.nLocais, 0);
   const nMun = brasil.ufs.reduce((a, u) => a + u.nMun, 0);
+  const dataTurno = turno === 1 ? '04/10/2026' : '25/10/2026';
 
   const colunas = [
     { key: 'uf', label: 'UF', value: r => r.nome, render: r => <a className="link font-medium" href={rotas.uf(r.uf)} onClick={e => e.stopPropagation()}>{r.nome}</a> },
@@ -133,8 +136,19 @@ export default function BrasilPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">Brasil · Presidente</h1>
-          <p className="text-sm ink-2">1º turno · 04/10/2026 · {fmt(nMun)} municípios (incl. {brasil.ufs.find(u => u.uf === 'ZZ')?.nMun} cidades no exterior) · {fmt(nLocais)} locais de votação · {fmt(nSecoes)} seções com urna</p>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-semibold">Brasil · Presidente ({turno}º Turno)</h1>
+            <Seg
+              size="xs"
+              value={String(turno)}
+              onChange={v => setTurno(+v)}
+              options={[
+                { value: '2', label: '2º Turno · 25/10' },
+                { value: '1', label: '1º Turno · 04/10' }
+              ]}
+            />
+          </div>
+          <p className="text-sm ink-2 mt-0.5">{turno}º turno · {dataTurno} · {fmt(nMun)} municípios (incl. {brasil.ufs.find(u => u.uf === 'ZZ')?.nMun} cidades no exterior) · {fmt(nLocais)} locais de votação · {fmt(nSecoes)} seções com urna</p>
         </div>
         <div className="flex gap-2">
           <a className="btn" href={rotas.localizar()}><Crosshair className="w-4 h-4" /> Localizar urna</a>
@@ -142,21 +156,31 @@ export default function BrasilPage() {
         </div>
       </div>
       <SeloAuditoria />
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <a href={rotas.destaques()} className="card p-4 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <a href={rotas.destaques()} className="card p-3.5 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
           <span className="w-10 h-10 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #256abf, #1baf7a)' }}><Sparkles className="w-5 h-5" /></span>
-          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Destaques da eleição</span><span className="block text-xs muted">Recordistas de votos, bancadas eleitas e o resumo de cada estado</span></span>
+          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Destaques {turno}º Turno</span><span className="block text-xs muted">Eleitos, recordistas e resumo por estado</span></span>
           <ChevronRight className="w-4 h-4 muted shrink-0" />
         </a>
-        <a href={rotas.placar()} className="card p-4 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
+        <a href={rotas.placar()} className="card p-3.5 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
           <span className="w-10 h-10 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #2a78d6, #6250d6)' }}><Trophy className="w-5 h-5" /></span>
-          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Placar com fotos</span><span className="block text-xs muted">Votos de cada candidato, de todos os cargos e estados</span></span>
+          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Placar com fotos</span><span className="block text-xs muted">Votos de cada candidato no {turno}º Turno</span></span>
+          <ChevronRight className="w-4 h-4 muted shrink-0" />
+        </a>
+        <a href={rotas.confronto()} className="card p-3.5 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
+          <span className="w-10 h-10 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #d97706, #dc2626)' }}><AlertTriangle className="w-5 h-5" /></span>
+          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Confronto 1º × 2º Turno</span><span className="block text-xs muted">Urnas anômalas, viradas e perda de votos</span></span>
+          <ChevronRight className="w-4 h-4 muted shrink-0" />
+        </a>
+        <a href={rotas.pos17h()} className="card p-3.5 flex items-center gap-3 hover:-translate-y-0.5 transition-transform">
+          <span className="w-10 h-10 rounded-xl grid place-items-center text-white shrink-0" style={{ background: 'linear-gradient(135deg, #7c3aed, #db2777)' }}><Clock className="w-5 h-5" /></span>
+          <span className="flex-1 min-w-0"><span className="block font-semibold text-sm">Votação Após 17:00h</span><span className="block text-xs muted">Relatório de seções encerradas pós-17h</span></span>
           <ChevronRight className="w-4 h-4 muted shrink-0" />
         </a>
       </div>
       <Indicadores st={st} cargo={1} />
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <Card title="Resultado nacional" subtitle="Votos nominais por candidato" className="lg:col-span-2">
+        <Card title={`Resultado nacional · ${turno}º Turno`} subtitle="Votos nominais por candidato" className="lg:col-span-2">
           <ResultadoCandidatos itens={itens} st={st} cargo={1} max={13} />
           <div className="mt-4"><ComposicaoVotos st={st} cargo={1} /></div>
         </Card>
@@ -165,8 +189,8 @@ export default function BrasilPage() {
         </Card>
       </div>
       <AbstencaoPorUf brasil={brasil} candRef={candRef} />
-      <Card title="Resultados por UF" subtitle="Percentuais de candidatos sobre votos válidos; clique na linha para abrir a UF">
-        <DataTable linhas={brasil.ufs} colunas={colunas} rowKey={r => r.uf} ordemInicial={{ key: 'apt', dir: 'desc' }} porPagina={30} nomeArquivo="presidente-por-uf" onRowClick={r => { window.location.hash = rotas.uf(r.uf); }} />
+      <Card title={`Resultados por UF · ${turno}º Turno`} subtitle="Percentuais de candidatos sobre votos válidos; clique na linha para abrir a UF">
+        <DataTable linhas={brasil.ufs} colunas={colunas} rowKey={r => r.uf} ordemInicial={{ key: 'apt', dir: 'desc' }} porPagina={30} nomeArquivo={`presidente-${turno}t-por-uf`} onRowClick={r => { window.location.hash = rotas.uf(r.uf); }} />
       </Card>
     </div>
   );

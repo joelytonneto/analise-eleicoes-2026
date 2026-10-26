@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Sun, Moon, ShieldCheck, LayoutDashboard, GitCompare, Map as MapIcon, Crosshair, Search, Sparkles, Trophy, Menu, X, BookOpen, Contrast, Check } from 'lucide-react';
+import { Sun, Moon, ShieldCheck, LayoutDashboard, GitCompare, Map as MapIcon, Crosshair, Search, Sparkles, Trophy, Menu, X, BookOpen, Contrast, Check, AlertTriangle, Clock } from 'lucide-react';
 import SearchBox from './components/SearchBox';
-import { useRoute, rotas } from './lib/router';
+import { useRoute, useTurno, rotas } from './lib/router';
 import BrasilPage from './pages/BrasilPage';
 import UfPage from './pages/UfPage';
 import MunicipioPage from './pages/MunicipioPage';
@@ -14,6 +14,8 @@ import BuscarPage from './pages/BuscarPage';
 import CandidatoPage from './pages/CandidatoPage';
 import PlacarPage from './pages/PlacarPage';
 import DestaquesPage from './pages/DestaquesPage';
+import ConfrontoPage from './pages/ConfrontoPage';
+import Pos17hPage from './pages/Pos17hPage';
 import { ComparacaoProvider, BandejaComparacao } from './components/Comparacao';
 
 /** Rede de segurança: um erro de renderização mostra um aviso em vez de apagar o app inteiro. */
@@ -61,13 +63,11 @@ function useTheme() {
   useEffect(() => {
     try { localStorage.setItem('theme', theme); } catch { /* sem armazenamento */ }
   }, [theme]);
-  // o tema é aplicado antes do novo render, para mapas e cores dos gráficos lerem o tema certo
   const trocar = t => { aplicarTema(t); setTheme(t); };
   if (typeof document !== 'undefined') aplicarTema(theme);
   return [theme, trocar];
 }
 
-/** Botão de tema: abre um menu com as quatro opções. */
 function SeletorTema({ theme, setTheme }) {
   const [aberto, setAberto] = useState(false);
   const ref = useRef(null);
@@ -107,6 +107,31 @@ function SeletorTema({ theme, setTheme }) {
   );
 }
 
+function SeletorTurnoHeader({ turno, setTurno }) {
+  return (
+    <div className="inline-flex rounded-lg p-0.5 text-xs font-semibold shrink-0" style={{ background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--ring)' }} role="group" aria-label="Selecionar turno">
+      <button
+        type="button"
+        onClick={() => setTurno(2)}
+        className="px-2 py-1 rounded-md transition-colors"
+        style={turno === 2 ? { background: 'var(--accent)', color: '#fff' } : { color: 'var(--ink-2)' }}
+        title="Ver resultados do 2º Turno (25/10/2026)"
+      >
+        2ºT
+      </button>
+      <button
+        type="button"
+        onClick={() => setTurno(1)}
+        className="px-2 py-1 rounded-md transition-colors"
+        style={turno === 1 ? { background: 'var(--accent)', color: '#fff' } : { color: 'var(--ink-2)' }}
+        title="Ver resultados do 1º Turno (04/10/2026)"
+      >
+        1ºT
+      </button>
+    </div>
+  );
+}
+
 function NavLink({ to, ativo, icon: I, children }) {
   return (
     <a href={to} title={children} aria-label={children} className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm font-medium whitespace-nowrap" style={ativo ? { background: 'var(--surface-2)', color: 'var(--ink)' } : { color: 'var(--ink-2)' }}>
@@ -115,8 +140,9 @@ function NavLink({ to, ativo, icon: I, children }) {
   );
 }
 
-// Barra de navegação inferior (celular/tablet), no estilo de aplicativo
 const MAIS = [
+  { to: rotas.confronto(), p: 'confronto', icon: AlertTriangle, label: 'Confronto 1º × 2º Turno', sub: 'Urnas anômalas, viradas e perda de votos entre turnos' },
+  { to: rotas.pos17h(), p: 'pos17h', icon: Clock, label: 'Votação Após 17:00h', sub: 'Relatório de seções encerradas pós-17h (1ºT e 2ºT)' },
   { to: rotas.localizar(), p: 'localizar', icon: Crosshair, label: 'Localizar urna', sub: 'UF, município, zona e seção' },
   { to: rotas.comparar([]), p: 'comparar', icon: GitCompare, label: 'Comparar', sub: 'Seções, locais, municípios e estados lado a lado' },
   { to: rotas.painel(), p: 'painel', icon: LayoutDashboard, label: 'Painel', sub: 'Monte gráficos com os filtros que quiser' },
@@ -128,16 +154,16 @@ function NavInferior({ p0 }) {
   useEffect(() => setMais(false), [p0]);
   const itens = [
     { to: rotas.brasil(), ativo: !p0 || p0 === 'uf', icon: MapIcon, label: 'Explorar' },
-    { to: rotas.destaques(), ativo: p0 === 'destaques', icon: Sparkles, label: 'Destaques' },
+    { to: rotas.confronto(), ativo: p0 === 'confronto', icon: AlertTriangle, label: 'Confronto' },
+    { to: rotas.pos17h(), ativo: p0 === 'pos17h', icon: Clock, label: 'Pós-17h' },
     { to: rotas.placar(), ativo: p0 === 'placar' || p0 === 'candidato', icon: Trophy, label: 'Placar' },
-    { to: rotas.buscar(), ativo: p0 === 'buscar', icon: Search, label: 'Buscar' },
-    { acao: () => setMais(m => !m), ativo: mais || MAIS.some(m => m.p === p0), icon: mais ? X : Menu, label: 'Mais' }
+    { acao: () => setMais(m => !m), ativo: mais || MAIS.some(m => m.p === p0 && m.p !== 'confronto' && m.p !== 'pos17h'), icon: mais ? X : Menu, label: 'Mais' }
   ];
   return (
     <>
     {mais && (
       <div className="lg:hidden fixed inset-0 z-40 no-print" onClick={() => setMais(false)} style={{ background: 'rgba(0,0,0,.35)' }}>
-        <div className="absolute inset-x-2 bottom-[68px] card p-2 safe-bottom" onClick={e => e.stopPropagation()} style={{ boxShadow: '0 0 0 1px var(--ring), 0 -12px 32px rgba(0,0,0,.25)' }}>
+        <div className="absolute inset-x-2 bottom-[68px] card p-2 safe-bottom max-h-[75vh] overflow-y-auto" onClick={e => e.stopPropagation()} style={{ boxShadow: '0 0 0 1px var(--ring), 0 -12px 32px rgba(0,0,0,.25)' }}>
           {MAIS.map(m => {
             const I = m.icon;
             return (
@@ -174,6 +200,7 @@ function NavInferior({ p0 }) {
 
 export default function App() {
   const [theme, setTheme] = useTheme();
+  const [turno, setTurno] = useTurno();
   const route = useRoute();
   const [p0, ...ps] = route.parts;
 
@@ -184,6 +211,8 @@ export default function App() {
   else if (p0 === 'uf' && ps.length === 1) page = <UfPage uf={ps[0].toUpperCase()} query={route.query} />;
   else if (p0 === 'uf' && ps.length === 2) page = <MunicipioPage uf={ps[0].toUpperCase()} cd={ps[1]} query={route.query} />;
   else if (p0 === 'uf' && ps.length >= 4) page = <SecaoPage uf={ps[0].toUpperCase()} cd={ps[1]} z={+ps[2]} s={+ps[3]} query={route.query} />;
+  else if (p0 === 'confronto') page = <ConfrontoPage query={route.query} />;
+  else if (p0 === 'pos17h') page = <Pos17hPage query={route.query} />;
   else if (p0 === 'comparar') page = <CompararPage query={route.query} />;
   else if (p0 === 'painel') page = <PainelPage query={route.query} />;
   else if (p0 === 'auditoria') page = <AuditoriaPage />;
@@ -198,24 +227,26 @@ export default function App() {
     <ComparacaoProvider>
       <div className="min-h-screen flex flex-col">
         <header className="lg:sticky top-0 z-30 backdrop-blur" style={{ background: 'color-mix(in srgb, var(--surface) 92%, transparent)', boxShadow: '0 1px 0 var(--ring)' }}>
-          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex flex-wrap items-center gap-x-3 gap-y-2">
             <a href="#/" className="flex items-center gap-2 shrink-0 min-w-0">
               <span className="w-8 h-8 rounded-lg grid place-items-center text-white font-bold text-sm shrink-0" style={{ background: 'var(--accent)' }}>26</span>
               <span className="leading-tight min-w-0">
                 <span className="block text-sm font-semibold">Eleições 2026</span>
-                <span className="block text-[11px] muted truncate">Auditoria por seção · dados oficiais TSE</span>
+                <span className="block text-[11px] muted truncate">1º e 2º Turno · Auditoria TSE</span>
               </span>
             </a>
-            {/* ações compactas no celular */}
+            <SeletorTurnoHeader turno={turno} setTurno={setTurno} />
             <div className="flex items-center gap-1 ml-auto lg:hidden">
               <a href={rotas.auditoria()} className="btn !px-2" aria-label="Auditoria e metodologia" title="Auditoria" style={p0 === 'auditoria' ? { color: 'var(--accent)' } : undefined}><ShieldCheck className="w-4 h-4" /></a>
               <SeletorTema theme={theme} setTheme={setTheme} />
             </div>
-            {p0 !== 'buscar' ? <div className="flex-1 basis-full lg:basis-auto lg:min-w-[190px] flex justify-center"><SearchBox /></div> : <div className="hidden lg:block flex-1" />}
+            {p0 !== 'buscar' ? <div className="flex-1 basis-full lg:basis-auto lg:min-w-[170px] flex justify-center"><SearchBox /></div> : <div className="hidden lg:block flex-1" />}
             <nav className="hidden lg:flex items-center gap-0.5">
               <NavLink to={rotas.brasil()} ativo={!p0 || p0 === 'uf'} icon={MapIcon}>Explorar</NavLink>
               <NavLink to={rotas.destaques()} ativo={p0 === 'destaques'} icon={Sparkles}>Destaques</NavLink>
               <NavLink to={rotas.placar()} ativo={p0 === 'placar'} icon={Trophy}>Placar</NavLink>
+              <NavLink to={rotas.confronto()} ativo={p0 === 'confronto'} icon={AlertTriangle}>Confronto 1º×2ºT</NavLink>
+              <NavLink to={rotas.pos17h()} ativo={p0 === 'pos17h'} icon={Clock}>Pós-17h</NavLink>
               <NavLink to={rotas.localizar()} ativo={p0 === 'localizar'} icon={Crosshair}>Localizar</NavLink>
               <NavLink to={rotas.comparar([])} ativo={p0 === 'comparar'} icon={GitCompare}>Comparar</NavLink>
               <NavLink to={rotas.painel()} ativo={p0 === 'painel'} icon={LayoutDashboard}>Painel</NavLink>
@@ -225,11 +256,13 @@ export default function App() {
           </div>
         </header>
 
-        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-5 pb-8 lg:pb-28"><Protecao key={route.path}>{page}</Protecao></main>
+        <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-5 pb-8 lg:pb-28">
+          <Protecao key={`${route.path}:${turno}`}>{page}</Protecao>
+        </main>
 
         <footer className="text-xs muted py-6 px-4 pb-40 lg:pb-6" style={{ boxShadow: '0 -1px 0 var(--ring)' }}>
           <div className="max-w-7xl mx-auto flex flex-wrap gap-x-6 gap-y-2 justify-between">
-            <span>Eleições Gerais 2026 · 1º turno (04/10/2026). Fontes: Portal de Dados Abertos do TSE e arquivos de urna publicados em resultados.tse.jus.br.</span>
+            <span>Eleições Gerais 2026 · 1º turno (04/10/2026) e 2º turno (25/10/2026). Fontes: Portal de Dados Abertos do TSE e arquivos de urna publicados em resultados.tse.jus.br.</span>
             <a className="link" href={rotas.auditoria()}>Metodologia e auditoria dos dados →</a>
           </div>
         </footer>

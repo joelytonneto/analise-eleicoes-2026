@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { ShieldCheck, Shuffle, Square, ExternalLink } from 'lucide-react';
-import { useAsync, Card, Loading, ErrorBox, StatusIcon, Select } from '../components/ui';
+import { useAsync, Card, Loading, ErrorBox, StatusIcon, Select, Seg } from '../components/ui';
 import { loadMeta, loadValidacao, loadMunicipiosIndex, loadMun, cargoNome } from '../lib/data';
 import { baixarBoletim, compararComBU, urlPortalSecao } from '../lib/tse';
 import { fmt, titulo, pad } from '../lib/format';
-import { rotas } from '../lib/router';
+import { rotas, useTurno } from '../lib/router';
 
 function Numero({ v, label, ok }) {
   return (
@@ -16,7 +16,8 @@ function Numero({ v, label, ok }) {
 }
 
 export default function AuditoriaPage() {
-  const { data, loading, error } = useAsync(() => Promise.all([loadMeta(), loadValidacao()]), []);
+  const [turno, setTurno] = useTurno();
+  const { data, loading, error } = useAsync(() => Promise.all([loadMeta(turno), loadValidacao(turno)]), [turno]);
   if (loading) return <Loading />;
   if (error) return <ErrorBox error={error} />;
   const [meta, val] = data;
@@ -24,9 +25,20 @@ export default function AuditoriaPage() {
 
   return (
     <div className="space-y-4 max-w-6xl">
-      <div>
-        <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> Auditoria e metodologia</h1>
-        <p className="text-sm ink-2 max-w-3xl">Este painel não estima, sorteia nem preenche nenhum número. Tudo vem de arquivos oficiais do Tribunal Superior Eleitoral, e a base foi conferida contra três referências independentes. Abaixo estão as fontes, as verificações e uma ferramenta para você mesmo conferir urnas ao vivo.</p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-semibold flex items-center gap-2"><ShieldCheck className="w-6 h-6" /> Auditoria e metodologia ({turno}º Turno)</h1>
+          <p className="text-sm ink-2 max-w-3xl">Este painel não estima, sorteia nem preenche nenhum número. Tudo vem de arquivos oficiais do Tribunal Superior Eleitoral, e a base foi conferida contra três referências independentes. Abaixo estão as fontes, as verificações e uma ferramenta para você mesmo conferir urnas ao vivo.</p>
+        </div>
+        <Seg
+          size="xs"
+          value={String(turno)}
+          onChange={v => setTurno(+v)}
+          options={[
+            { value: '2', label: '2º Turno · 25/10' },
+            { value: '1', label: '1º Turno · 04/10' }
+          ]}
+        />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -36,11 +48,11 @@ export default function AuditoriaPage() {
         <Numero label={`BUs originais conferidos (amostra)`} v={`${fmt(b.secoesIguais)} / ${fmt(b.amostra)}`} ok={b.secoesIguais === b.amostra && !b.erros.length} />
       </div>
 
-      <ConferenciaAoVivo />
+      <ConferenciaAoVivo turno={turno} />
 
-      <Card title="1. Totalização oficial (resultados.tse.jus.br)" subtitle={`Gerado em ${new Date(val.geradoEm).toLocaleString('pt-BR')}`}>
+      <Card title={`1. Totalização oficial (resultados.tse.jus.br) · ${turno}º Turno`} subtitle={`Gerado em ${new Date(val.geradoEm).toLocaleString('pt-BR')}`}>
         <p className="text-sm ink-2 mb-2">
-          Para o Brasil, cada UF e <b>cada um dos {fmt(meta.contagens.municipios)} municípios</b> (incluindo cidades no exterior), os totais da base foram comparados com os mesmos arquivos JSON que alimentam o portal de resultados do TSE: eleitores aptos, comparecimento, abstenção, brancos, nulos, válidos, anulados e os votos de cada candidato a Presidente, Governador e Senador; para Deputados, os totais e os votos de todos os candidatos por UF.
+          Para o Brasil, cada UF e <b>cada um dos {fmt(meta.contagens.municipios)} municípios</b> (incluindo cidades no exterior), os totais da base foram comparados com os mesmos arquivos JSON que alimentam o portal de resultados do TSE: eleitores aptos, comparecimento, abstenção, brancos, nulos, válidos, anulados e os votos de cada candidato.
         </p>
         <p className="text-sm"><b>{fmt(d.arquivos)}</b> arquivos · <b>{fmt(d.comparacoes)}</b> comparações · <b>{fmt(d.divergencias.length)}</b> divergência(s) · <b>{fmt(d.ausentes.length)}</b> arquivo(s) ausente(s).</p>
         {d.divergencias.length > 0 && (
@@ -49,7 +61,7 @@ export default function AuditoriaPage() {
       </Card>
 
       <Card title="2. Boletins de urna originais" subtitle="Sorteio estratificado (todas as UFs e o exterior), arquivos baixados e decodificados">
-        <p className="text-sm ink-2 mb-2">Para cada seção sorteada, o arquivo <code>-bu.dat</code> (assinado pela própria urna) foi baixado de resultados.tse.jus.br e decodificado pelo mesmo código que roda no seu navegador na página de cada seção. Foram comparados aptos, comparecimento, nominais, legenda, brancos, nulos e os votos de cada candidato em todos os cargos.</p>
+        <p className="text-sm ink-2 mb-2">Para cada seção sorteada, o arquivo <code>-bu.dat</code> (assinado pela própria urna) foi baixado de resultados.tse.jus.br e decodificado pelo mesmo código que roda no seu navegador na página de cada seção. Foram comparados aptos, comparecimento, nominais, legenda, brancos, nulos e os votos de cada candidato.</p>
         <p className="text-sm"><b>{fmt(b.amostra)}</b> BUs · <b>{fmt(b.secoesIguais)}</b> idênticos · <b>{fmt(b.comparacoes)}</b> números comparados · <b>{fmt(b.divergencias.length)}</b> divergência(s) · <b>{fmt(b.erros.length)}</b> erro(s) de download.</p>
         <details className="mt-2">
           <summary className="text-sm link cursor-pointer">Ver as {fmt(b.verificadas.length)} seções conferidas</summary>
@@ -76,7 +88,7 @@ export default function AuditoriaPage() {
       <Card title="Regras de contagem (iguais às do TSE)">
         <ul className="text-sm ink-2 list-disc pl-5 space-y-1.5">
           <li><b>Votos válidos</b> = votos nominais em candidaturas válidas + votos de legenda. Percentuais de candidatos são sobre os válidos.</li>
-          <li><b>Nulos técnicos</b>: a urna registra como nominal o voto em um número que existia na urna, mas a candidatura não é reconhecida na totalização (ex.: nº 28 para Presidente, após substituição de candidato). O TSE soma esses votos aos nulos; aqui também.</li>
+          <li><b>Nulos técnicos</b>: a urna registra como nominal o voto em um número que existia na urna, mas a candidatura não é reconhecida na totalização. O TSE soma esses votos aos nulos; aqui também.</li>
           <li><b>Anulados sub judice</b>: votos em candidaturas com situação pendente na Justiça; aparecem separados e não entram nos válidos, como no portal do TSE.</li>
           <li><b>Seções agregadas</b>: votam na urna da seção principal; não possuem BU próprio. A página da seção agregada aponta para a principal.</li>
           <li><b>Seções não instaladas</b> (algumas no exterior): constam no cadastro com eleitores aptos, sem comparecimento nem abstenção apurados.</li>
@@ -84,7 +96,7 @@ export default function AuditoriaPage() {
         </ul>
       </Card>
 
-      <Card title="Fontes oficiais utilizadas" subtitle="Arquivos baixados do Portal de Dados Abertos do TSE; o SHA-256 permite verificar que são os mesmos arquivos">
+      <Card title="Fontes oficiais utilizadas" subtitle="Arquivos baixados do TSE; o SHA-256 permite verificar que são os mesmos arquivos">
         <div className="overflow-auto">
           <table className="tbl">
             <thead><tr><th>Arquivo</th><th>Gerado pelo TSE</th><th className="text-right">Registros</th><th className="text-right">Tamanho</th><th>SHA-256</th></tr></thead>
@@ -101,18 +113,18 @@ export default function AuditoriaPage() {
             </tbody>
           </table>
         </div>
-        <p className="text-xs muted mt-2">Base gerada em {new Date(meta.geradoEm).toLocaleString('pt-BR')}. Para reproduzir: baixe os arquivos acima e execute <code>node scripts/data/build.mjs</code> e <code>node scripts/data/validate.mjs</code> (código aberto no repositório).</p>
+        <p className="text-xs muted mt-2">Base gerada em {new Date(meta.geradoEm).toLocaleString('pt-BR')}.</p>
       </Card>
     </div>
   );
 }
 
-function ConferenciaAoVivo() {
+function ConferenciaAoVivo({ turno }) {
   const [n, setN] = useState(10);
   const [linhas, setLinhas] = useState([]);
   const [rodando, setRodando] = useState(false);
   const parar = useRef(false);
-  const idx = useAsync(() => loadMunicipiosIndex(), []);
+  const idx = useAsync(() => loadMunicipiosIndex(turno), [turno]);
 
   const rodar = async () => {
     parar.current = false;
@@ -126,12 +138,22 @@ function ConferenciaAoVivo() {
       const linha = { id: k, uf: m.uf, cd: m.cd, municipio: titulo(m.nome), estado: 'carregando' };
       setLinhas(l => [...l, linha]);
       try {
-        const mf = await loadMun(m.uf, m.cd);
-        const secs = mf.secoes.filter(s => s.st && !s.ag);
+        const mf = await loadMun(m.uf, m.cd, turno);
+        const secs = mf.secoes.filter(s => !s.ag && (turno === 2 || s.st));
         const s = secs[Math.floor(Math.random() * secs.length)];
         Object.assign(linha, { z: s.z, s: s.s });
-        const bu = await baixarBoletim(m.uf, m.cd, s.z, s.s);
-        const comp = compararComBU(s, { 1: mf.cand[1], 3: mf.cand[3], 5: mf.cand[5] }, bu.resumo);
+        const bu = await baixarBoletim(m.uf, m.cd, s.z, s.s, { turno });
+        let secRef = s;
+        if (!secRef.st && bu.resumo) {
+          const stSint = {};
+          const vSint = {};
+          for (const [cg, resCg] of Object.entries(bu.resumo)) {
+            stSint[cg] = [resCg.aptos, resCg.comparecimento, resCg.aptos - resCg.comparecimento, resCg.nominais, resCg.brancos, resCg.nulos, resCg.legenda || 0, 0, 0, 0, 0];
+            if (mf.cand?.[cg]) vSint[cg] = mf.cand[cg].map(num => resCg.votos[num] || 0);
+          }
+          secRef = { ...s, st: stSint, v: vSint };
+        }
+        const comp = compararComBU(secRef, { 1: mf.cand[1], 3: mf.cand[3], 5: mf.cand[5] }, bu.resumo);
         Object.assign(linha, { estado: 'ok', total: comp.length, iguais: comp.filter(c => c.ok).length });
       } catch (e) {
         Object.assign(linha, { estado: 'erro', erro: e.message });
@@ -143,7 +165,7 @@ function ConferenciaAoVivo() {
 
   const ok = linhas.filter(l => l.estado === 'ok');
   return (
-    <Card title="Confira você mesmo, agora" subtitle="Sorteia seções de todo o Brasil, baixa os BUs direto do TSE no seu navegador e compara com a base">
+    <Card title={`Confira você mesmo, agora (${turno}º Turno)`} subtitle="Sorteia seções de todo o Brasil, baixa os BUs direto do TSE no seu navegador e compara com a base">
       <div className="flex flex-wrap gap-2 items-center mb-3">
         <Select value={n} onChange={v => setN(+v)} className="!py-1">{[5, 10, 25, 50, 100].map(x => <option key={x} value={x}>{x} urnas</option>)}</Select>
         {!rodando
@@ -164,7 +186,7 @@ function ConferenciaAoVivo() {
                     {l.estado === 'ok' && <span className="inline-flex items-center gap-1.5"><StatusIcon ok={l.iguais === l.total} /> {l.iguais}/{l.total} números conferem</span>}
                     {l.estado === 'erro' && <span style={{ color: 'var(--bad)' }}>{l.erro}</span>}
                   </td>
-                  <td>{l.z && <a className="link text-xs inline-flex items-center gap-1" href={urlPortalSecao(l.uf, l.cd, l.z, l.s)} target="_blank" rel="noreferrer">TSE <ExternalLink className="w-3 h-3" /></a>}</td>
+                  <td>{l.z && <a className="link text-xs inline-flex items-center gap-1" href={urlPortalSecao(l.uf, l.cd, l.z, l.s, 1, turno)} target="_blank" rel="noreferrer">TSE <ExternalLink className="w-3 h-3" /></a>}</td>
                 </tr>
               ))}
             </tbody>

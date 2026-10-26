@@ -1,7 +1,7 @@
 // Busca por texto livre em locais de votação (nome da escola, endereço, bairro) e candidaturas.
 import { loadCandidatosIndex, loadLocaisUf, UF_NOMES, cargoNome } from './data';
 import { semAcento, titulo, pad } from './format';
-import { rotas } from './router';
+import { rotas, getTurno } from './router';
 
 const PARADAS = new Set(['de', 'da', 'do', 'das', 'dos', 'e', 'a', 'o', 'em', 'na', 'no']);
 export const norm = s => semAcento(s).replace(/[^a-z0-9]+/g, ' ').trim();
@@ -22,17 +22,18 @@ export const eleitoOuTurno2 = resultado => ['eleito', 'turno2'].includes(situaca
 
 // ---------------------------------------------------------------- candidatos
 const CAMPOS = ['cargo', 'uf', 'n', 'nome', 'nomeCompleto', 'partido', 'resultado', 'votos', 'sq', 'votoValido'];
-let candCache = null;
-export function carregarCandidatos() {
-  if (!candCache) {
-    candCache = loadCandidatosIndex().then(rows => rows.map(r => {
+const candCache = new Map();
+export function carregarCandidatos(t = getTurno()) {
+  const key = +t === 1 ? 1 : 2;
+  if (!candCache.has(key)) {
+    candCache.set(key, loadCandidatosIndex(key).then(rows => rows.map(r => {
       const c = Object.fromEntries(CAMPOS.map((k, i) => [k, r[i]]));
       c._t = ` ${norm(`${c.nome} ${c.nomeCompleto}`)} `;
       c._p = norm(c.partido);
       return c;
-    })).catch(e => { candCache = null; throw e; });
+    })).catch(e => { candCache.delete(key); throw e; }));
   }
-  return candCache;
+  return candCache.get(key);
 }
 
 export const hrefCandidato = c => rotas.candidato(c.cargo === 1 ? 'BR' : c.uf, c.cargo, c.n);
@@ -155,9 +156,19 @@ export const subLocal = l => [titulo(l.end), titulo(l.bairro), `${l.mun} – ${l
 export const subCandidato = c => [`${cargoNome(c.cargo)} · ${rotuloUfCand(c)}`, c.partido, `nº ${c.n}`, `${c.votos.toLocaleString('pt-BR')} votos`].join(' · ');
 
 /** Índice cargo|uf|nº -> candidatura (com o código sq da foto). */
-let porChaveCache = null;
-export function carregarCandidatosPorChave() {
-  if (!porChaveCache) porChaveCache = carregarCandidatos().then(l => new Map(l.map(c => [`${c.cargo}|${c.uf}|${c.n}`, c])));
-  return porChaveCache;
+const porChaveCache = new Map();
+export function carregarCandidatosPorChave(t = getTurno()) {
+  const key = +t === 1 ? 1 : 2;
+  if (!porChaveCache.has(key)) {
+    const p = key === 1
+      ? carregarCandidatos(1).then(l => new Map(l.map(c => [`${c.cargo}|${c.uf}|${c.n}`, c])))
+      : Promise.all([carregarCandidatos(1).catch(() => []), carregarCandidatos(2)]).then(([l1, l2]) => {
+          const m = new Map(l1.map(c => [`${c.cargo}|${c.uf}|${c.n}`, c]));
+          for (const c of l2) m.set(`${c.cargo}|${c.uf}|${c.n}`, c);
+          return m;
+        });
+    porChaveCache.set(key, p.catch(e => { porChaveCache.delete(key); throw e; }));
+  }
+  return porChaveCache.get(key);
 }
 export const chaveCand = (cargo, uf, n) => `${cargo}|${+cargo === 1 ? 'BR' : uf}|${n}`;

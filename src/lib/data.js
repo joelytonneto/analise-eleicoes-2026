@@ -1,9 +1,13 @@
-// Acesso à base estática gerada a partir dos dados abertos do TSE (public/data/2026/t1).
+// Acesso à base estática gerada a partir dos dados oficiais do TSE (public/data/2026/t1 e t2).
 // Todos os arquivos são JSON servidos pelo próprio site; mantidos em cache na memória.
+import { getTurno } from './router.js';
 
-const BASE = `${import.meta.env.BASE_URL}data/2026/t1/`;
+const BASE_2026 = `${import.meta.env.BASE_URL}data/2026/`;
+const BASE_T1 = `${BASE_2026}t1/`;
 const GEO = `${import.meta.env.BASE_URL}data/geo/`;
 const cache = new Map();
+
+const baseTurno = (t = getTurno()) => `${BASE_2026}t${+t === 1 ? 1 : 2}/`;
 
 function load(url) {
   if (!cache.has(url)) {
@@ -15,16 +19,69 @@ function load(url) {
   return cache.get(url);
 }
 
-export const loadBrasil = () => load(`${BASE}brasil.json`);
-export const loadMeta = () => load(`${BASE}meta.json`);
-export const loadValidacao = () => load(`${BASE}validacao.json`);
-export const loadMunicipiosIndex = () => load(`${BASE}municipios.json`);
-export const loadPartidos = () => load(`${BASE}partidos.json`);
-export const loadUf = uf => load(`${BASE}uf/${uf}.json`);
-export const loadMun = (uf, cd) => load(`${BASE}mun/${uf}/${cd}.json`);
-export const loadDep = uf => load(`${BASE}dep/${uf}.json`);
+export const loadBrasil = (t = getTurno()) => load(`${baseTurno(t)}brasil.json`);
+export const loadMeta = (t = getTurno()) => load(`${baseTurno(t)}meta.json`);
+export const loadValidacao = (t = getTurno()) => load(`${baseTurno(t)}validacao.json`);
+export const loadMunicipiosIndex = (t = getTurno()) => load(`${baseTurno(t)}municipios.json`);
+export const loadPartidos = (t = getTurno()) => load(`${baseTurno(t)}partidos.json`);
+export const loadUf = (uf, t = getTurno()) => load(`${baseTurno(t)}uf/${uf}.json`);
+export const loadDep = uf => load(`${BASE_T1}dep/${uf}.json`);
+export const loadZonasT2 = uf => load(`${BASE_2026}t2/zonas/${uf}.json`);
 export const loadGeoUf = uf => load(`${GEO}${uf}.json`);
 export const loadGeoBrasil = () => import('../data/brazilStatesGeo.json').then(m => m.default);
+
+// Relatórios especiais (Confronto 1º×2º Turno e Votação Após 17:00h)
+export const loadConfrontoTurnos = () => load(`${BASE_2026}confronto-turnos.json`);
+export const loadVotacaoPos17h = () => load(`${BASE_2026}votacao-pos17h.json`);
+
+export function loadMun(uf, cd, t = getTurno()) {
+  if (+t === 1) return load(`${BASE_T1}mun/${uf}/${cd}.json`);
+  const key = `mun-t2:${uf}:${cd}`;
+  if (!cache.has(key)) {
+    cache.set(key, Promise.all([
+      load(`${BASE_T1}mun/${uf}/${cd}.json`),
+      loadUf(uf, 2),
+      loadZonasT2(uf)
+    ]).then(([mf1, uf2, z2]) => {
+      const m2 = uf2.mun.find(m => m.cd === String(cd));
+      const secoesBU = z2.secoesBU || {};
+      const zonasTotais = {};
+      if (m2) {
+        if (m2.zonas?.length === 1) {
+          zonasTotais[m2.zonas[0]] = { st: m2.st, v: m2.v };
+        } else {
+          for (const z of m2.zonas || []) {
+            const zd = z2.zonas?.[`${cd}|${z}`];
+            if (zd) zonasTotais[z] = zd;
+          }
+        }
+      }
+      const secoes = mf1.secoes.map(s => {
+        const bu = secoesBU[`${cd}|${s.z}|${s.s}`];
+        return {
+          ...s,
+          t1: s.st ? { st: s.st, v: s.v, rb: s.rb, cand: mf1.cand } : null,
+          st: bu ? bu.st : null,
+          v: bu ? bu.v : null,
+          rb: bu ? bu.rb : null,
+          ab: bu ? bu.ab : null,
+          enc: bu ? bu.enc : null,
+          buSobDemanda: !s.ag && !bu
+        };
+      });
+      return {
+        ...mf1,
+        turno: 2,
+        cand: z2.cand || { 1: [13, 22] },
+        candT1: mf1.cand,
+        munTotal: m2 || null,
+        zonasTotais,
+        secoes
+      };
+    }).catch(e => { cache.delete(key); throw e; }));
+  }
+  return cache.get(key);
+}
 
 // Índices do vetor de estatísticas (st) por cargo
 // nom = votos nominais digitados (como no BU); tec = nulos técnicos (número não reconhecido pelo TSE);
@@ -46,6 +103,8 @@ export const IBGE_UF = {
   51: 'MT', 52: 'GO', 53: 'DF'
 };
 
+export const UFS_GOV_2T = ['AC', 'AM', 'DF', 'ES', 'RN', 'TO'];
+
 export const CARGOS = [
   { id: 1, nome: 'Presidente', curto: 'Presidente', secao: true },
   { id: 3, nome: 'Governador', curto: 'Governador', secao: true },
@@ -55,8 +114,13 @@ export const CARGOS = [
   { id: 8, nome: 'Deputado Distrital', curto: 'Dep. Distrital', secao: false }
 ];
 export const cargoNome = id => CARGOS.find(c => c.id === +id)?.nome || `Cargo ${id}`;
-/** Cargos disponíveis para uma UF (Exterior só vota para Presidente; DF tem distrital). */
-export function cargosDaUf(uf) {
+
+/** Cargos disponíveis para uma UF no turno ativo. */
+export function cargosDaUf(uf, t = getTurno()) {
+  if (+t === 2) {
+    if (uf && UFS_GOV_2T.includes(uf)) return CARGOS.filter(c => c.id === 1 || c.id === 3);
+    return CARGOS.filter(c => c.id === 1);
+  }
   if (!uf) return CARGOS.filter(c => c.id === 1);
   if (uf === 'ZZ') return CARGOS.filter(c => c.id === 1);
   if (uf === 'DF') return CARGOS.filter(c => c.id !== 7);
@@ -105,10 +169,10 @@ export function secoesDoMunicipio(mf, ufNome) {
 }
 
 /** Agrega seções em zonas ou locais de votação. */
-export function agrupar(secoes, chave) {
+export function agrupar(secoes, chave, zonasTotais = null) {
   const g = new Map();
   for (const s of secoes) {
-    if (!s.st) continue;
+    if (!s.st && !zonasTotais) continue;
     const k = chave === 'zona' ? `${s.z}` : `${s.z}|${s.local?.n}`;
     let u = g.get(k);
     if (!u) {
@@ -118,16 +182,29 @@ export function agrupar(secoes, chave) {
       };
       g.set(k, u);
     }
-    somarSt(u.st, s.st);
-    somarV(u.v, s.v);
-    u.nSecoes++;
-    u.eleitorado += s.el || 0;
+    if (s.st) {
+      somarSt(u.st, s.st);
+      somarV(u.v, s.v);
+    }
+    if (!s.ag) {
+      u.nSecoes++;
+      u.eleitorado += s.el || 0;
+    }
     u.secoes.push(s);
     if (s.local) u.locais.add(s.local.n);
+  }
+  if (chave === 'zona' && zonasTotais) {
+    for (const u of g.values()) {
+      const zt = zonasTotais[u.z];
+      if (zt) {
+        u.st = zt.st;
+        u.v = zt.v;
+      }
+    }
   }
   return [...g.values()];
 }
 
-// Índices da busca (gerados por scripts/data/indices-busca.mjs)
-export const loadCandidatosIndex = () => load(`${BASE}busca/candidatos.json`);
-export const loadLocaisUf = uf => load(`${BASE}busca/locais/${uf}.json`);
+// Índices da busca (gerados por scripts/data/indices-busca.mjs e build-t2.mjs)
+export const loadCandidatosIndex = (t = getTurno()) => load(`${baseTurno(t)}busca/candidatos.json`);
+export const loadLocaisUf = uf => load(`${BASE_T1}busca/locais/${uf}.json`);

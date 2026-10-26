@@ -7,19 +7,16 @@ import { loadBrasil, loadUf, loadMun, loadDep, UF_NOMES, cargosDaUf, cargoNome, 
 import { carregarCandidatos, eleitoOuTurno2, subLocal, subCandidato, hrefCandidato } from '../lib/busca';
 import { corPorIndice, OUTROS } from '../lib/colors';
 import { fmt, fmtPct, pct, titulo, pad, semAcento } from '../lib/format';
-import { rotas, setQuery } from '../lib/router';
+import { rotas, setQuery, useTurno } from '../lib/router';
 import { baixarBoletim, urlPortalSecao } from '../lib/tse';
 
-// ---------------------------------------------------------------- votos de deputado por urna (boletins de urna do TSE)
-// O TSE não publica o voto de cada deputado por zona, local ou seção na totalização: esse dado está só no
-// boletim de urna (BU). Para esses recortes o Placar baixa os BUs do TSE e soma os votos, como a página da seção.
-const LIMITE_AUTOMATICO = 80; // acima disso de urnas, a leitura começa só quando a pessoa pede
+const LIMITE_AUTOMATICO = 80;
 const cacheBU = new Map();
-/** Resumo do BU oficial de uma urna, por cargo, com os endereços dos arquivos no TSE. */
-function lerBoletim(uf, cd, z, s) {
-  const k = `${uf}-${cd}-${z}-${s}`;
+
+function lerBoletim(uf, cd, z, s, turno) {
+  const k = `${turno}-${uf}-${cd}-${z}-${s}`;
   if (!cacheBU.has(k)) {
-    cacheBU.set(k, baixarBoletim(uf, cd, z, s).then(r => {
+    cacheBU.set(k, baixarBoletim(uf, cd, z, s, { turno }).then(r => {
       const o = { cargos: {}, urlBU: r.urlBU, urlAux: r.urlAux };
       for (const b of Object.values(r.resumo)) {
         if (b.codigoCargo == null) continue;
@@ -31,8 +28,7 @@ function lerBoletim(uf, cd, z, s) {
   return cacheBU.get(k);
 }
 
-/** Lê os BUs das urnas (6 por vez) e devolve o progresso e os votos por urna (chave "zona-seção"). */
-function useBoletins(uf, cd, urnas, ativo) {
+function useBoletins(uf, cd, urnas, ativo, turno) {
   const [r, setR] = useState({ urnas: null, res: new Map(), feitos: 0, falhas: 0 });
   useEffect(() => {
     if (!ativo || !urnas?.length) return undefined;
@@ -43,14 +39,14 @@ function useBoletins(uf, cd, urnas, ativo) {
     const trabalhador = async () => {
       while (vivo && i < urnas.length) {
         const x = urnas[i++];
-        try { res.set(`${x.z}-${x.s}`, await lerBoletim(uf, cd, x.z, x.s)); } catch { falhas++; }
+        try { res.set(`${x.z}-${x.s}`, await lerBoletim(uf, cd, x.z, x.s, turno)); } catch { falhas++; }
         feitos++;
         if (feitos === urnas.length || Date.now() - ultimo > 250) { ultimo = Date.now(); publicar(); }
       }
     };
     Promise.all(Array.from({ length: 6 }, trabalhador));
     return () => { vivo = false; };
-  }, [uf, cd, urnas, ativo]);
+  }, [uf, cd, urnas, ativo, turno]);
   const atual = r.urnas === urnas;
   return { res: atual ? r.res : new Map(), feitos: atual ? r.feitos : 0, falhas: atual ? r.falhas : 0, total: urnas?.length || 0, pronto: atual && !!urnas?.length && r.feitos >= urnas.length };
 }
@@ -97,8 +93,6 @@ function LinhaCandidato({ c, pos, total, cor, topo }) {
   );
 }
 
-// ---------------------------------------------------------------- escopo (Brasil → UF → município → zona → local → seção)
-
 function lerEscopo(query) {
   const uf = query.uf && UF_NOMES[query.uf] ? query.uf : '';
   const cd = uf && /^\d{5}$/.test(query.m || '') ? query.m : '';
@@ -109,7 +103,6 @@ function lerEscopo(query) {
   return { uf, cd, z, l, s, nivel };
 }
 
-/** Endereço do Placar para um lugar encontrado na busca. */
 function hrefPlacarLugar(r, c) {
   if (r.tipo === 'uf') return rotas.placar({ uf: r.uf, c });
   if (r.tipo === 'mun') return rotas.placar({ uf: r.uf, m: r.cd, c });
@@ -118,7 +111,6 @@ function hrefPlacarLugar(r, c) {
   return r.href;
 }
 
-/** Busca de qualquer lugar (estado, cidade, zona e seção, escola ou endereço) ou candidato, abrindo no Placar. */
 function BuscaLugar({ cargo }) {
   const [q, setQ] = useState('');
   const [aberto, setAberto] = useState(false);
@@ -176,11 +168,7 @@ function BuscaLugar({ cargo }) {
   );
 }
 
-/**
- * Conferência da seção com o boletim de urna (BU) oficial baixado do TSE: cada número da tela
- * comparado com o arquivo da urna, e links para conferir por conta própria no portal e no arquivo.
- */
-function ConferenciaTSE({ uf, cd, z, s, cargo, prop, st, lista, bu, carregando, falhou, auditoria }) {
+function ConferenciaTSE({ uf, cd, z, s, cargo, prop, st, lista, bu, carregando, falhou, auditoria, turno }) {
   const b = bu?.cargos?.[cargo];
   const linhas = [];
   if (b) {
@@ -200,11 +188,11 @@ function ConferenciaTSE({ uf, cd, z, s, cargo, prop, st, lista, bu, carregando, 
       <div className="flex items-start gap-3">
         <span className="w-9 h-9 rounded-xl grid place-items-center shrink-0" style={{ background: 'color-mix(in srgb, var(--ok) 14%, transparent)', color: 'var(--ok)' }}><ShieldCheck className="w-5 h-5" /></span>
         <div className="min-w-0 flex-1">
-          <div className="font-semibold">Conferir com o TSE</div>
+          <div className="font-semibold">Conferir com o TSE ({turno}º Turno)</div>
           <div className="text-sm ink-2">
             {carregando && !b ? <span className="inline-flex items-center gap-1.5"><Loader2 className="w-4 h-4 animate-spin" /> Baixando o boletim de urna oficial desta seção no site do TSE…</span>
               : !b ? <span style={{ color: 'var(--bad)' }}>{falhou ? 'Não foi possível baixar o boletim de urna agora. Use os links abaixo para conferir direto no TSE.' : 'O boletim de urna não traz este cargo.'}</span>
-              : !div.length ? <span className="inline-flex items-start gap-1.5"><StatusIcon ok /> <span>Os <b>{linhas.length}</b> números desta tela para {cargoNome(cargo)} conferem com o boletim de urna oficial desta seção{prop ? ' (os votos por deputado foram lidos desse mesmo boletim)' : ''}.</span></span>
+              : !div.length ? <span className="inline-flex items-start gap-1.5"><StatusIcon ok /> <span>Os <b>{linhas.length}</b> números desta tela para {cargoNome(cargo)} conferem com o boletim de urna oficial desta seção.</span></span>
               : <span className="inline-flex items-start gap-1.5"><StatusIcon ok={false} /> <span><b>{div.length}</b> número(s) diferente(s) do boletim de urna: {div.map(x => x.item).join(', ')}.</span></span>}
           </div>
         </div>
@@ -230,7 +218,7 @@ function ConferenciaTSE({ uf, cd, z, s, cargo, prop, st, lista, bu, carregando, 
         </details>
       )}
       <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
-        <a className={link} href={urlPortalSecao(uf, cd, z, s, cargo)} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4" /> Abrir esta seção no portal do TSE</a>
+        <a className={link} href={urlPortalSecao(uf, cd, z, s, cargo, turno)} target="_blank" rel="noreferrer"><ExternalLink className="w-4 h-4" /> Abrir esta seção no portal do TSE</a>
         {bu?.urlBU && <a className={link} href={bu.urlBU} target="_blank" rel="noreferrer"><Download className="w-4 h-4" /> Boletim de urna (arquivo oficial)</a>}
         <a className={link} href={auditoria}><FileText className="w-4 h-4" /> Auditoria completa da urna</a>
       </div>
@@ -244,7 +232,6 @@ const ORDENS = [
   { value: 'nome', label: 'A–Z' }
 ];
 
-/** Grade de cartões dos lugares contidos no escopo (estados, municípios, locais, seções…). */
 function GradeLugares({ titulo: tit, itens, ordemInicial = 'aptos', alternativa }) {
   const [filtro, setFiltro] = useState('');
   const [ordem, setOrdem] = useState(ordemInicial);
@@ -280,27 +267,27 @@ function GradeLugares({ titulo: tit, itens, ordemInicial = 'aptos', alternativa 
   );
 }
 
-/** Placar visual: fotos oficiais, votos e percentuais de qualquer recorte — do Brasil até uma urna. */
 export default function PlacarPage({ query }) {
+  const [turno, setTurno] = useTurno();
   const esc = lerEscopo(query);
   const { uf, cd, z, l, s, nivel } = esc;
-  const disp = cargosDaUf(uf || null);
-  const cargo = disp.some(c => c.id === +query.c) ? +query.c : uf && uf !== 'ZZ' ? 3 : 1;
-  const prop = cargo >= 6;
+  const disp = cargosDaUf(uf || null, turno);
+  const cargo = disp.some(c => c.id === +query.c) ? +query.c : disp[0]?.id || 1;
+  const prop = cargo >= 6 && turno === 1;
   const precisaDep = prop && nivel !== 'br';
   const [filtro, setFiltro] = useState('eleitos');
   const [qtd, setQtd] = useState(24);
   const [abaMun, setAbaMun] = useState('locais');
   const [pediuBU, setPediuBU] = useState('');
-  const chaveEscopo = `${uf}|${cd}|${z}|${l}|${s}`;
+  const chaveEscopo = `${turno}|${uf}|${cd}|${z}|${l}|${s}`;
   useEffect(() => { setQtd(24); window.scrollTo(0, 0); }, [chaveEscopo]);
 
   const { data, loading, error } = useAsync(() => Promise.all([
-    loadBrasil(), carregarCandidatos(),
-    uf ? loadUf(uf) : null,
-    cd ? loadMun(uf, cd) : null,
+    loadBrasil(turno), carregarCandidatos(turno),
+    uf ? loadUf(uf, turno) : null,
+    cd ? loadMun(uf, cd, turno) : null,
     precisaDep ? loadDep(uf) : null
-  ]), [uf, cd, precisaDep]);
+  ]), [uf, cd, precisaDep, turno]);
 
   const ctx = useMemo(() => {
     if (!data) return null;
@@ -308,7 +295,6 @@ export default function PlacarPage({ query }) {
     const ufC = cargo === 1 ? 'BR' : uf;
     const idx = new Map(todos.filter(c => c.cargo === cargo && c.uf === ufC).map(c => [+c.n, c]));
     const info = c => ({ ...idx.get(+c.n), ...c, cargo, uf: ufC, href: rotas.candidato(ufC, cargo, c.n) });
-    // lista de referência (ordem dos vetores de votos) e posição de cada candidato no ranking do escopo de referência
     const ref = cargo === 1 ? brasil.cand[1] : prop ? dd?.cand?.[cargo] || [] : ud?.cand?.[cargo] || [];
     const rank = new Map([...ref].sort((a, b) => (b.votos || 0) - (a.votos || 0)).map((c, i) => [+c.n, i]));
     const corDe = n => {
@@ -319,7 +305,6 @@ export default function PlacarPage({ query }) {
     const valido = i => !idx.get(+ref[i]?.n)?.votoValido;
     const deVetor = vec => ref.map((c, i) => ({ ...info(c), votos: vec?.[i] || 0 }));
 
-    // resumo de um lugar: quem liderou, a divisão dos votos
     const resumoVetor = (vec, stU) => {
       if (!vec || !stU) return {};
       const ordem = vec.map((v, i) => [v || 0, i]).filter(([v, i]) => v > 0 && valido(i)).sort((a, b) => b[0] - a[0]);
@@ -346,15 +331,23 @@ export default function PlacarPage({ query }) {
       }
       return soma;
     };
-    // a partir dos BUs: só números de candidatos reconhecidos e com voto válido (o resto é nulo técnico/anulado)
-    const listaBU = soma => [...soma].filter(([n]) => porNum.has(n) && !idx.get(n)?.votoValido).map(([n, q]) => ({ ...info(porNum.get(n)), votos: q }));
+    const somarStBU = (secs, res) => {
+      let apt = 0, comp = 0, nom = 0, br = 0, nu = 0, leg = 0;
+      for (const x of secs) {
+        const b = res.get(`${x.z}-${x.s}`)?.cargos[cargo];
+        if (b) { apt += b.aptos; comp += b.comparecimento; nom += b.nominais; br += b.brancos; nu += b.nulos; leg += b.legenda || 0; }
+      }
+      return apt ? [apt, comp, apt - comp, nom, br, nu, leg, 0, 0, 0, 0] : null;
+    };
+    const listaBU = soma => ref.map(c => ({ ...info(c), votos: soma.get(+c.n) || 0 }));
     const liderBU = (secs, res, stU) => {
       let bn = null, bv = 0;
       for (const [n, q] of somarBU(secs, res)) if (q > bv && porNum.has(n) && !idx.get(n)?.votoValido) { bv = q; bn = n; }
       if (bn == null) return {};
-      return { lider: { ...info(porNum.get(bn)), votos: bv, pct: pct(bv, validosSt(stU)), cor: corDe(bn), rotulo: 'deputado mais votado' } };
+      const stEf = stU || somarStBU(secs, res);
+      return { lider: { ...info(porNum.get(bn)), votos: bv, pct: pct(bv, validosSt(stEf)), cor: corDe(bn) } };
     };
-    const unidade = (u, extra) => ({ aptos: u.st?.[S.aptos] || 0, comp: u.st?.[S.comp] || 0, ...extra });
+    const unidade = (u, extra) => ({ aptos: u.st?.[S.aptos] || u.eleitorado || 0, comp: u.st?.[S.comp] || 0, ...extra });
 
     let st, lista = null, filhos = [], filhosZonas = null, extra = {}, urnas = null;
     const m = cd ? ud?.mun.find(x => x.cd === cd) : null;
@@ -380,10 +373,10 @@ export default function PlacarPage({ query }) {
       extra.sub = `${fmt(resumo?.nMun)} ${uf === 'ZZ' ? 'cidades' : 'municípios'} · ${fmt(resumo?.nSecoes)} seções`;
     } else {
       const secoes = secoesDoMunicipio(mf, UF_NOMES[uf]);
-      const cartaoLocal = u => unidade({ st: u.st[cargo] }, {
+      const cartaoLocal = u => unidade({ st: u.st[cargo], eleitorado: u.eleitorado }, {
         key: `${u.z}-${u.local.n}`, nome: titulo(u.local.nome),
         sub: [titulo(u.local.end), titulo(u.local.bairro), `Zona ${pad(u.z)}`, `${u.nSecoes} seç${u.nSecoes === 1 ? 'ão' : 'ões'}`].filter(Boolean).join(' · '),
-        href: rotas.placar({ uf, m: cd, z: u.z, l: u.local.n, c: cargo }), ...(prop ? { _secoes: u.secoes.filter(x => x.st?.[cargo]), _st: u.st[cargo] } : resumoVetor(u.v[cargo], u.st[cargo]))
+        href: rotas.placar({ uf, m: cd, z: u.z, l: u.local.n, c: cargo }), ...(prop || !u.st[cargo] ? { _secoes: u.secoes.filter(x => !x.ag), _st: u.st[cargo] } : resumoVetor(u.v[cargo], u.st[cargo]))
       });
       if (nivel === 'mun') {
         st = m.st[cargo];
@@ -392,9 +385,9 @@ export default function PlacarPage({ query }) {
           lista = [];
           if (d) for (let i = 0; i < d.v.length; i += 2) lista.push({ ...info(ref[d.v[i]]), votos: d.v[i + 1] });
         } else lista = deVetor(m.v[cargo]);
-        filhos = agrupar(secoes, 'local').filter(u => u.st[cargo]).map(cartaoLocal);
+        filhos = agrupar(secoes, 'local', turno === 2 ? {} : null).map(cartaoLocal);
         if (m.zonas.length > 1) {
-          filhosZonas = agrupar(secoes, 'zona').filter(u => u.st[cargo]).map(u => unidade({ st: u.st[cargo] }, {
+          filhosZonas = agrupar(secoes, 'zona', mf.zonasTotais).filter(u => u.st[cargo]).map(u => unidade({ st: u.st[cargo] }, {
             key: u.z, nome: `Zona ${pad(u.z)}`, ordemNome: pad(u.z), sub: `${fmt(u.locais.size)} locais · ${fmt(u.nSecoes)} seções`,
             href: rotas.placar({ uf, m: cd, z: u.z, c: cargo }), ...(prop ? {} : resumoVetor(u.v[cargo], u.st[cargo]))
           }));
@@ -413,17 +406,18 @@ export default function PlacarPage({ query }) {
         }
         if (!sel.length) return { erro: nivel === 'zona' ? `A zona ${pad(z)} não existe em ${nomeMun} – ${uf}.` : `Local de votação não encontrado na zona ${pad(z)} de ${nomeMun} – ${uf}.` };
         extra.local = sel[0].local;
-        const [agg] = agrupar(sel.map(x => ({ ...x, z: 0, local: { n: 0 } })), 'zona');
-        st = agg?.st[cargo];
-        lista = prop ? null : agg ? deVetor(agg.v[cargo]) : [];
-        if (prop || nivel === 'secao') urnas = sel.filter(x => x.st?.[cargo]);
+        const zTot = nivel === 'zona' && mf.zonasTotais?.[z] ? { [0]: mf.zonasTotais[z] } : null;
+        const [agg] = agrupar(sel.map(x => ({ ...x, z: 0, local: { n: 0 } })), 'zona', zTot || (turno === 2 ? {} : null));
+        st = agg?.st?.[cargo];
+        lista = prop || !st ? null : agg ? deVetor(agg.v[cargo]) : [];
+        if (prop || nivel === 'secao' || !st) urnas = sel.filter(x => !x.ag);
         if (nivel === 'zona') {
-          filhos = agrupar(sel, 'local').filter(u => u.st[cargo]).map(cartaoLocal);
+          filhos = agrupar(sel, 'local', turno === 2 ? {} : null).map(cartaoLocal);
           extra.sub = `${fmt(new Set(sel.map(x => x.local?.n)).size)} locais · ${fmt(agg?.nSecoes || 0)} seções · ${nomeMun} – ${uf}`;
         } else if (nivel === 'local') {
-          filhos = sel.filter(x => x.st?.[cargo]).map(x => unidade({ st: x.st[cargo] }, {
+          filhos = sel.filter(x => !x.ag).map(x => unidade({ st: x.st?.[cargo], eleitorado: x.el }, {
             key: x.s, nome: `Seção ${pad(x.s)}`, ordemNome: pad(x.s), sub: x.agr ? `Agrega a(s) seção(ões) ${x.agr.map(a => pad(a)).join(', ')}` : x.m ? `Urna ${x.m}` : null,
-            href: rotas.placar({ uf, m: cd, z, s: x.s, c: cargo }), ...(prop ? { _secoes: [x], _st: x.st[cargo] } : resumoVetor(x.v?.[cargo], x.st[cargo]))
+            href: rotas.placar({ uf, m: cd, z, s: x.s, c: cargo }), ...(prop || !x.st?.[cargo] ? { _secoes: [x], _st: x.st?.[cargo] } : resumoVetor(x.v?.[cargo], x.st[cargo]))
           }));
           const loc = extra.local;
           extra.sub = [titulo(loc?.end), titulo(loc?.bairro), `${nomeMun} – ${uf}`, `Zona ${pad(z)}`].filter(Boolean).join(' · ');
@@ -436,21 +430,22 @@ export default function PlacarPage({ query }) {
     if (lista) {
       lista = lista.filter(c => !c.votoValido && (nivel === 'br' || nivel === 'uf' || !prop || c.votos > 0)).sort((a, b) => b.votos - a.votos);
     }
-    return { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos: validosSt(st), urnas, somarBU, listaBU, liderBU };
-  }, [data, cargo, prop, uf, cd, z, l, s, nivel]);
+    return { st, lista, filhos, filhosZonas, nomeMun, corDe, extra, validos: validosSt(st), urnas, somarBU, somarStBU, listaBU, liderBU };
+  }, [data, cargo, prop, uf, cd, z, l, s, nivel, turno]);
 
   const urnas = ctx?.urnas || null;
   const chaveBU = `${chaveEscopo}|${cargo}`;
   const autoBU = !!urnas && (urnas.length <= LIMITE_AUTOMATICO || pediuBU === chaveBU);
-  const bus = useBoletins(uf, cd, urnas, autoBU);
+  const bus = useBoletins(uf, cd, urnas, autoBU, turno);
   const doBU = useMemo(() => {
     if (!urnas || !bus.feitos) return null;
     const soma = ctx.somarBU(urnas, bus.res);
+    const stBU = ctx.somarStBU(urnas, bus.res);
     let nominaisBU = 0;
     for (const x of urnas) nominaisBU += bus.res.get(`${x.z}-${x.s}`)?.cargos[cargo]?.nominais || 0;
     const lista = ctx.listaBU(soma).sort((a, b) => b.votos - a.votos);
     const filhos = ctx.filhos.map(f => (f._secoes ? { ...f, ...ctx.liderBU(f._secoes, bus.res, f._st) } : f));
-    return { lista, filhos, nominaisBU };
+    return { lista, filhos, nominaisBU, stBU };
   }, [ctx, urnas, bus.res, bus.feitos, cargo]);
 
   if (loading) return <Loading />;
@@ -464,14 +459,25 @@ export default function PlacarPage({ query }) {
         {Object.entries(UF_NOMES).map(([sg, n]) => <option key={sg} value={sg}>{n}</option>)}
       </Select>
       {disp.length > 1 && <Seg value={cargo} onChange={v => trocar({ c: v })} options={disp.map(c => ({ value: c.id, label: c.curto }))} />}
+      <Seg
+        size="xs"
+        value={String(turno)}
+        onChange={v => setTurno(+v)}
+        options={[
+          { value: '2', label: '2º Turno' },
+          { value: '1', label: '1º Turno' }
+        ]}
+      />
       <div className="w-full lg:w-auto lg:ml-auto"><BuscaLugar cargo={cargo} /></div>
     </div>
   );
 
   if (ctx?.erro) return <div className="space-y-4">{controles}<ErrorBox>{ctx.erro}</ErrorBox></div>;
 
-  const { st, filhosZonas, nomeMun, corDe, extra, validos } = ctx;
-  const viaBU = !!urnas && bus.pronto && !!doBU;
+  const { filhosZonas, nomeMun, corDe, extra } = ctx;
+  const viaBU = !!urnas && (bus.pronto || !ctx.st) && !!doBU;
+  const st = ctx.st || doBU?.stBU;
+  const validos = validosSt(st);
   const lista = ctx.lista || (viaBU ? doBU.lista : null);
   const filhos = viaBU ? doBU.filhos : ctx.filhos;
   const local = extra.local;
@@ -500,7 +506,7 @@ export default function PlacarPage({ query }) {
       <div className="absolute -right-10 -top-10 w-56 h-56 rounded-full opacity-10" style={{ background: '#fff' }} />
       <div className="relative flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-xs uppercase tracking-widest opacity-80 flex items-center gap-1.5"><Trophy className="w-4 h-4" /> Placar · 1º turno 2026</div>
+          <div className="text-xs uppercase tracking-widest opacity-80 flex items-center gap-1.5"><Trophy className="w-4 h-4" /> Placar · {turno}º turno 2026</div>
           {trilha.length > 1 && (
             <nav aria-label="Caminho" className="mt-1.5 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs sm:text-sm">
               {trilha.map((t, i) => (
@@ -522,7 +528,7 @@ export default function PlacarPage({ query }) {
     </div>
   );
 
-  if (!st) {
+  if (!st && !autoBU) {
     return (
       <div className="space-y-5">
         {hero}
@@ -532,10 +538,19 @@ export default function PlacarPage({ query }) {
     );
   }
 
-  // a cor segue o candidato (posição no ranking do estado/Brasil), em qualquer recorte
+  if (!st && autoBU && !bus.pronto) {
+    return (
+      <div className="space-y-5">
+        {hero}
+        {controles}
+        <div className="card p-4 text-sm flex items-center gap-3"><Loader2 className="w-5 h-5 animate-spin" /> Baixando Boletins de Urna originais do {turno}º Turno direto do TSE ({bus.feitos}/{bus.total})…</div>
+      </div>
+    );
+  }
+
   const cor = c => corDe(c.n);
   const vagas = cargo === 5 ? 2 : 1;
-  const totalVotos = st[S.comp] * vagas;
+  const totalVotos = (st?.[S.comp] || 0) * vagas;
   const nPodio = lista ? Math.min(3, lista.length) : 0;
   const podio = lista ? lista.slice(0, nPodio) : [];
   const eleitos = lista ? lista.filter(c => eleitoOuTurno2(c.resultado)) : [];
@@ -555,16 +570,18 @@ export default function PlacarPage({ query }) {
         </div>
       )}
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <CartaoNumero icon={Vote} rotulo="Votos válidos" valor={validos} sub={`${fmtPct1(pct(validos, totalVotos))} dos votos`} cor="#2a78d6" />
-        <CartaoNumero icon={Users} rotulo="Compareceram" valor={st[S.comp]} sub={`de ${fmt(st[S.aptos])} aptos`} cor="#1baf7a" />
-        <CartaoNumero icon={CircleSlash} rotulo="Brancos e nulos" valor={st[S.br] + nulosSt(st)} sub={`${fmtPct1(pct(st[S.br] + nulosSt(st), totalVotos))} dos votos`} cor="#898781" />
-        <CartaoNumero icon={UserX} rotulo="Abstenção" valor={st[S.abst]} sub={`${fmtPct1(pct(st[S.abst], st[S.aptos]))} dos aptos`} cor="#eb6834" />
-      </div>
+      {st && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <CartaoNumero icon={Vote} rotulo="Votos válidos" valor={validos} sub={`${fmtPct1(pct(validos, totalVotos))} dos votos`} cor="#2a78d6" />
+          <CartaoNumero icon={Users} rotulo="Compareceram" valor={st[S.comp]} sub={`de ${fmt(st[S.aptos])} aptos`} cor="#1baf7a" />
+          <CartaoNumero icon={CircleSlash} rotulo="Brancos e nulos" valor={st[S.br] + nulosSt(st)} sub={`${fmtPct1(pct(st[S.br] + nulosSt(st), totalVotos))} dos votos`} cor="#898781" />
+          <CartaoNumero icon={UserX} rotulo="Abstenção" valor={st[S.abst]} sub={`${fmtPct1(pct(st[S.abst], st[S.aptos]))} dos aptos`} cor="#eb6834" />
+        </div>
+      )}
 
-      {nivel === 'secao' && extra.sec && (
+      {nivel === 'secao' && extra.sec && st && (
         <ConferenciaTSE uf={uf} cd={cd} z={z} s={extra.sec.s} cargo={cargo} prop={prop} st={st} lista={lista}
-          bu={bus.res.get(`${z}-${extra.sec.s}`)} carregando={!bus.pronto} falhou={bus.falhas > 0} auditoria={analise} />
+          bu={bus.res.get(`${z}-${extra.sec.s}`)} carregando={!bus.pronto} falhou={bus.falhas > 0} auditoria={analise} turno={turno} />
       )}
       {urnas && prop && !bus.pronto && (
         <div className="card p-4 text-sm flex gap-3"><Info className="w-5 h-5 shrink-0" style={{ color: 'var(--accent)' }} />
@@ -579,21 +596,6 @@ export default function PlacarPage({ query }) {
               : <button className="btn btn-primary" onClick={() => setPediuBU(chaveBU)}><FileText className="w-4 h-4" /> Ler os {fmt(urnas.length)} boletins de urna</button>}
           </div>
         </div>
-      )}
-      {urnas && !urnas.length && (
-        <ErrorBox>Não há urna com votação de {cargoNome(cargo)} neste recorte.</ErrorBox>
-      )}
-      {viaBU && prop && (
-        <p className="text-xs muted flex items-start gap-1.5">
-          <FileText className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-          <span>
-            Votos por deputado lidos agora {bus.total - bus.falhas === 1 ? 'do boletim de urna publicado' : <>dos {fmt(bus.total - bus.falhas)} boletins de urna publicados</>} pelo TSE
-            {bus.falhas ? <> — <b style={{ color: 'var(--bad)' }}>{fmt(bus.falhas)} boletim(ns) não puderam ser baixados</b>; recarregue a página para tentar de novo</> : null}.
-            {' '}{!bus.falhas && doBU.nominaisBU === st[S.nom]
-              ? <span style={{ color: 'var(--ok)' }}>✓ Soma dos votos nominais ({fmt(doBU.nominaisBU)}) confere com a totalização.</span>
-              : !bus.falhas ? <span style={{ color: 'var(--warn)' }}>Votos nominais nos BUs: {fmt(doBU.nominaisBU)}; na totalização: {fmt(st[S.nom])}.</span> : null}
-          </span>
-        </p>
       )}
 
       {podio.length > 0 && (
@@ -635,7 +637,7 @@ export default function PlacarPage({ query }) {
       )}
 
       <p className="text-xs muted">
-        Fotos e números oficiais publicados pelo TSE. Percentuais sobre os votos válidos{prop ? ' (nominais + legenda)' : ''}.
+        Fotos e números oficiais publicados pelo TSE ({turno}º Turno). Percentuais sobre os votos válidos{prop ? ' (nominais + legenda)' : ''}.
         {nivel === 'br' || nivel === 'uf' ? '' : ' Abaixo do estado, os votos são a soma das urnas do recorte.'} Toque num candidato para ver onde ele foi votado, ou num lugar para descer até a urna.
       </p>
     </div>

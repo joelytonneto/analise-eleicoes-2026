@@ -2,11 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { Sparkles, Users, UserX, Vote, MapPin, Building2, Landmark, Crown, Medal, TrendingUp, TrendingDown } from 'lucide-react';
 import { useAsync, Loading, ErrorBox, Seg, SeloResultado } from '../components/ui';
 import { FotoCandidato, CartaoNumero, Contador } from '../components/Vitrine';
-import { loadBrasil, UF_NOMES, validosSt, S } from '../lib/data';
+import { loadBrasil, UF_NOMES, validosSt, S, UFS_GOV_2T } from '../lib/data';
 import { carregarCandidatos, situacao } from '../lib/busca';
 import { corPorIndice, OUTROS } from '../lib/colors';
 import { fmt, fmtPct, pct } from '../lib/format';
-import { rotas } from '../lib/router';
+import { rotas, useTurno } from '../lib/router';
 
 const fmtPct1 = v => fmtPct(v, 1);
 const hrefCand = c => rotas.candidato(c.cargo === 1 ? 'BR' : c.uf, c.cargo, c.n);
@@ -109,16 +109,27 @@ function MiniCand({ c, rotulo, total }) {
   );
 }
 
-function CartaoEstado({ u, porUf }) {
+function CartaoEstado({ u, porUf, porUfT1, turno, presCand }) {
   const d = porUf.get(u.uf) || {};
+  const d1 = porUfT1?.get(u.uf) || d;
   const val = cg => validosSt(u.st[cg]);
-  const gov = d[3] || [];
+  const gov = d[3] || d1[3] || [];
   const govEleito = gov.find(c => situacao(c.resultado) === 'eleito');
   const govT2 = gov.filter(c => situacao(c.resultado) === 'turno2');
-  const sens = (d[5] || []).filter(c => situacao(c.resultado) === 'eleito');
-  const depF = (d[6] || [])[0];
-  const depE = (d[u.uf === 'DF' ? 8 : 7] || [])[0];
+  const sens = (d1[5] || []).filter(c => situacao(c.resultado) === 'eleito');
+  const depF = (d1[6] || [])[0];
+  const depE = (d1[u.uf === 'DF' ? 8 : 7] || [])[0];
   const abst = pct(u.st[1][S.abst], u.st[1][S.aptos]);
+
+  // Presidente mais votado na UF no turno ativo
+  let presLider = null;
+  if (u.v?.[1] && presCand?.length) {
+    let bi = 0;
+    for (let i = 1; i < u.v[1].length; i++) if (u.v[1][i] > u.v[1][bi]) bi = i;
+    const ref = presCand[bi];
+    if (ref) presLider = { ...ref, cargo: 1, uf: 'BR', votos: u.v[1][bi] };
+  }
+
   return (
     <section className="card overflow-hidden flex flex-col">
       <a href={rotas.uf(u.uf)} className="px-4 py-3 flex items-center justify-between gap-2" style={{ background: 'var(--surface-2)' }}>
@@ -129,57 +140,74 @@ function CartaoEstado({ u, porUf }) {
         <span className="text-[11px] muted shrink-0 text-right leading-tight">{fmt(u.st[1][S.aptos])} eleitores<br />abstenção {fmtPct1(abst)}</span>
       </a>
       <div className="p-4 space-y-3 flex-1">
+        {presLider && <MiniCand c={presLider} rotulo={`Presidente mais votado (${turno}ºT)`} total={val(1)} />}
         {govEleito
-          ? <MiniCand c={govEleito} rotulo="Governador eleito" total={val(3)} />
+          ? <MiniCand c={govEleito} rotulo={turno === 2 && UFS_GOV_2T.includes(u.uf) ? 'Governador eleito (2ºT)' : 'Governador eleito'} total={u.st[3] ? val(3) : null} />
           : govT2.length
             ? <div className="space-y-2"><div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--accent)' }}>Governador · 2º turno</div>{govT2.map(c => <MiniCand key={c.n} c={c} rotulo="Disputa o 2º turno" total={val(3)} />)}</div>
             : <MiniCand c={gov[0]} rotulo="Governador (mais votado)" total={val(3)} />}
-        {sens.map(c => <MiniCand key={c.n} c={c} rotulo="Senador eleito" total={val(5)} />)}
-        <MiniCand c={depF} rotulo="Dep. federal mais votado" total={val(6)} />
-        <MiniCand c={depE} rotulo={u.uf === 'DF' ? 'Dep. distrital mais votado' : 'Dep. estadual mais votado'} total={val(u.uf === 'DF' ? 8 : 7)} />
+        {turno === 1 && sens.map(c => <MiniCand key={c.n} c={c} rotulo="Senador eleito" total={val(5)} />)}
+        {turno === 1 && <MiniCand c={depF} rotulo="Dep. federal mais votado" total={val(6)} />}
+        {turno === 1 && <MiniCand c={depE} rotulo={u.uf === 'DF' ? 'Dep. distrital mais votado' : 'Dep. estadual mais votado'} total={val(u.uf === 'DF' ? 8 : 7)} />}
       </div>
-      <a href={rotas.placar({ uf: u.uf, c: 3 })} className="px-4 py-2 text-xs link text-center" style={{ boxShadow: '0 -1px 0 var(--ring)' }}>Ver placar completo de {u.nome} →</a>
+      <a href={rotas.placar({ uf: u.uf, c: turno === 2 && !UFS_GOV_2T.includes(u.uf) ? 1 : 3 })} className="px-4 py-2 text-xs link text-center" style={{ boxShadow: '0 -1px 0 var(--ring)' }}>Ver placar completo de {u.nome} →</a>
     </section>
   );
 }
 
 /** Principais indicadores e recordes da eleição, de todos os cargos e estados. */
 export default function DestaquesPage() {
-  const { data, loading, error } = useAsync(() => Promise.all([loadBrasil(), carregarCandidatos()]), []);
+  const [turno, setTurno] = useTurno();
+  const { data, loading, error } = useAsync(
+    () => Promise.all([loadBrasil(turno), carregarCandidatos(turno), carregarCandidatos(1)]),
+    [turno]
+  );
   const [ordemUf, setOrdemUf] = useState('nome');
 
   const ctx = useMemo(() => {
     if (!data) return null;
-    const [brasil, todos] = data;
+    const [brasil, todos, todosT1] = data;
     const validos = todos.filter(c => !c.votoValido && c.votos > 0);
-    const porUf = new Map();
-    for (const c of validos) {
-      const m = porUf.get(c.uf) || {};
-      (m[c.cargo] ??= []).push(c);
-      porUf.set(c.uf, m);
-    }
-    for (const m of porUf.values()) for (const l of Object.values(m)) l.sort((a, b) => b.votos - a.votos);
-    const maior = cg => validos.filter(c => c.cargo === cg).sort((a, b) => b.votos - a.votos)[0];
+    const validosT1 = (todosT1 || []).filter(c => !c.votoValido && c.votos > 0);
+    const agruparPorUf = lista => {
+      const m = new Map();
+      for (const c of lista) {
+        const u = m.get(c.uf) || {};
+        (u[c.cargo] ??= []).push(c);
+        m.set(c.uf, u);
+      }
+      for (const u of m.values()) for (const l of Object.values(u)) l.sort((a, b) => b.votos - a.votos);
+      return m;
+    };
+    const porUf = agruparPorUf(validos);
+    const porUfT1 = agruparPorUf(validosT1);
+
+    const maior = (lista, cg) => lista.filter(c => c.cargo === cg).sort((a, b) => b.votos - a.votos)[0];
     const resumoUf = new Map(brasil.ufs.map(u => [u.uf, u]));
     const pctNaUf = c => pct(c.votos, validosSt(resumoUf.get(c.uf)?.st[c.cargo]));
     const melhorPct = cgs => validos.filter(c => cgs.includes(c.cargo)).map(c => ({ c, p: pctNaUf(c) })).filter(x => x.p != null).sort((a, b) => b.p - a.p)[0];
     const ufs = brasil.ufs.filter(u => u.uf !== 'ZZ');
     const abst = u => pct(u.st[1][S.abst], u.st[1][S.aptos]);
     const ufsAbst = [...ufs].sort((a, b) => abst(a) - abst(b));
-    const govEleitos = validos.filter(c => c.cargo === 3 && situacao(c.resultado) === 'eleito');
-    const govT2 = new Set(validos.filter(c => c.cargo === 3 && situacao(c.resultado) === 'turno2').map(c => c.uf));
-    const eleitosDe = cgs => todos.filter(c => cgs.includes(c.cargo) && situacao(c.resultado) === 'eleito');
+    const govEleitosT1 = validosT1.filter(c => c.cargo === 3 && situacao(c.resultado) === 'eleito');
+    const govEleitosT2 = validos.filter(c => c.cargo === 3 && situacao(c.resultado) === 'eleito');
+    const govT2 = new Set(validosT1.filter(c => c.cargo === 3 && situacao(c.resultado) === 'turno2').map(c => c.uf));
+    const eleitosDe = (lista, cgs) => lista.filter(c => cgs.includes(c.cargo) && situacao(c.resultado) === 'eleito');
+
+    // Todos os 27 governadores eleitos (21 no 1ºT + 6 no 2ºT)
+    const todosGovernadoresEleitos = turno === 2 ? [...govEleitosT1, ...govEleitosT2] : govEleitosT1;
+
     return {
-      brasil, porUf, ufs, abst, govEleitos, govT2,
-      pres: brasil.cand[1].map((c, i) => ({ ...todos.find(x => x.cargo === 1 && x.n === c.n), votos: brasil.total.v[1][i] })),
-      depF: maior(6), depE: validos.filter(c => c.cargo === 7 || c.cargo === 8).sort((a, b) => b.votos - a.votos)[0],
-      sen: maior(5), gov: maior(3),
+      brasil, porUf, porUfT1, ufs, abst, govEleitosT1, govEleitosT2, govT2, todosGovernadoresEleitos,
+      pres: brasil.cand[1].map((c, i) => ({ ...todos.find(x => x.cargo === 1 && x.n === c.n), ...c, cargo: 1, uf: 'BR', votos: brasil.total.v[1][i] })),
+      depF: maior(validosT1, 6), depE: validosT1.filter(c => c.cargo === 7 || c.cargo === 8).sort((a, b) => b.votos - a.votos)[0],
+      sen: maior(validosT1, 5), gov: maior(turno === 2 ? validos : validosT1, 3),
       govPct: melhorPct([3]), senPct: melhorPct([5]),
       menorAbst: ufsAbst[0], maiorAbst: ufsAbst[ufsAbst.length - 1],
-      camara: eleitosDe([6]), senado: eleitosDe([5]), assembleias: eleitosDe([7, 8]),
+      camara: eleitosDe(validosT1, [6]), senado: eleitosDe(validosT1, [5]), assembleias: eleitosDe(validosT1, [7, 8]),
       nCands: todos.length
     };
-  }, [data]);
+  }, [data, turno]);
 
   if (loading) return <Loading />;
   if (error) return <ErrorBox error={error} />;
@@ -196,18 +224,33 @@ export default function DestaquesPage() {
       <div className="rounded-2xl p-5 sm:p-8 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0d366b, #256abf 50%, #1baf7a)' }}>
         <div className="absolute -right-16 -bottom-16 w-72 h-72 rounded-full opacity-10" style={{ background: '#fff' }} />
         <div className="relative">
-          <div className="text-xs uppercase tracking-widest opacity-80 flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> Destaques · Eleições Gerais 2026</div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold mt-1">O 1º turno em números</h1>
-          <p className="text-sm sm:text-base opacity-90 mt-2 max-w-2xl">{fmt(nMun)} municípios, {fmt(nSecoes)} urnas e {fmt(ctx.nCands)} candidaturas para presidente, governador, senador e deputados. Todos os números vêm dos arquivos oficiais do TSE.</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs uppercase tracking-widest opacity-80 flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> Destaques · Eleições Gerais 2026</div>
+            <Seg
+              size="xs"
+              value={String(turno)}
+              onChange={v => setTurno(+v)}
+              options={[
+                { value: '2', label: '2º Turno · 25/10' },
+                { value: '1', label: '1º Turno · 04/10' }
+              ]}
+            />
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-extrabold mt-1">O {turno}º turno em números</h1>
+          <p className="text-sm sm:text-base opacity-90 mt-2 max-w-2xl">
+            {turno === 2
+              ? `${fmt(nMun)} municípios, ${fmt(nSecoes)} urnas apuradas em 25/10/2026 para Presidente da República e Governador em 6 estados (AC, AM, DF, ES, RN e TO).`
+              : `${fmt(nMun)} municípios, ${fmt(nSecoes)} urnas e ${fmt(ctx.nCands)} candidaturas para presidente, governador, senador e deputados em 04/10/2026.`}
+          </p>
           {p1 && p2 && (
-            <div className="mt-5 grid grid-cols-2 gap-3 max-w-xl">
+            <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl">
               {[p1, p2].map((c, i) => (
                 <a key={c.n} href={hrefCand(c)} className="rounded-xl p-3 flex items-center gap-3 min-w-0" style={{ background: 'rgba(255,255,255,.12)' }}>
                   <FotoCandidato cargo={1} uf="BR" sq={c.sq} nome={c.nome} size={52} cor={corPorIndice(i)} />
                   <span className="min-w-0">
-                    <span className="block text-sm font-bold truncate">{c.nome}</span>
+                    <span className="block text-sm font-bold truncate">{c.nome} ({c.partido})</span>
                     <span className="block text-2xl font-extrabold leading-tight"><Contador valor={pct(c.votos, validosPres)} formato={fmtPct1} /></span>
-                    <span className="block text-[11px] opacity-80">2º turno · 25/10</span>
+                    <span className="block text-[11px] opacity-85">{fmt(c.votos)} votos · {c.resultado}</span>
                   </span>
                 </a>
               ))}
@@ -223,50 +266,71 @@ export default function DestaquesPage() {
         <CartaoNumero icon={Building2} rotulo="Urnas apuradas" valor={nSecoes} sub={`${fmt(nMun)} municípios`} cor="#6250d6" />
       </div>
 
+      {turno === 2 && ctx.govEleitosT2.length > 0 && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-bold flex items-center gap-2"><Crown className="w-5 h-5" style={{ color: '#1baf7a' }} /> Governadores eleitos no 2º Turno (25/10/2026)</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {ctx.govEleitosT2.map(c => {
+              const u = brasil.ufs.find(x => x.uf === c.uf);
+              const totVal = validosSt(u?.st?.[3]);
+              return (
+                <Recorde
+                  key={`${c.uf}-${c.n}`}
+                  rotulo={`Governador(a) eleito(a) · ${UF_NOMES[c.uf]}`}
+                  icon={Crown}
+                  c={c}
+                  cor="#1baf7a"
+                  sub={`${fmtPct1(pct(c.votos, totVal))} dos votos válidos no 2º turno`}
+                />
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-3">
-        <h2 className="text-lg font-bold flex items-center gap-2"><Crown className="w-5 h-5" style={{ color: '#eda100' }} /> Recordistas de votos</h2>
+        <h2 className="text-lg font-bold flex items-center gap-2"><Crown className="w-5 h-5" style={{ color: '#eda100' }} /> Recordistas de votos ({turno}º Turno)</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          <Recorde rotulo="Mais votado para presidente" icon={Crown} c={p1} cor="#eda100" sub={`${fmtPct1(pct(p1?.votos, validosPres))} dos válidos`} />
-          <Recorde rotulo="Deputado federal mais votado do Brasil" c={ctx.depF} cor="#2a78d6" sub={ctx.depF && <SeloResultado resultado={ctx.depF.resultado} />} />
-          <Recorde rotulo="Deputado estadual/distrital mais votado" c={ctx.depE} cor="#6250d6" sub={ctx.depE && <SeloResultado resultado={ctx.depE.resultado} />} />
-          <Recorde rotulo="Senador mais votado do Brasil" c={ctx.sen} cor="#1baf7a" sub={ctx.sen && <SeloResultado resultado={ctx.sen.resultado} />} />
-          <Recorde rotulo="Governador mais votado do Brasil" c={ctx.gov} cor="#e34948" sub={ctx.gov && <SeloResultado resultado={ctx.gov.resultado} />} />
-          <Recorde rotulo="Maior % para governador" icon={TrendingUp} c={ctx.govPct?.c} cor="#eb6834" sub={ctx.govPct && `${fmtPct1(ctx.govPct.p)} dos válidos em ${UF_NOMES[ctx.govPct.c.uf]}`} />
-          <Recorde rotulo="Maior % para senador" icon={TrendingUp} c={ctx.senPct?.c} cor="#e87ba4" sub={ctx.senPct && `${fmtPct1(ctx.senPct.p)} dos válidos em ${UF_NOMES[ctx.senPct.c.uf]} (2 votos por eleitor)`} />
+          <Recorde rotulo={turno === 2 ? 'Presidente Eleito da República' : 'Mais votado para presidente (1ºT)'} icon={Crown} c={p1} cor="#eda100" sub={`${fmtPct1(pct(p1?.votos, validosPres))} dos válidos`} />
+          <Recorde rotulo={`Governador mais votado (${turno}ºT)`} c={ctx.gov} cor="#e34948" sub={ctx.gov && <SeloResultado resultado={ctx.gov.resultado} />} />
+          <Recorde rotulo={`Maior % para governador (${turno}ºT)`} icon={TrendingUp} c={ctx.govPct?.c} cor="#eb6834" sub={ctx.govPct && `${fmtPct1(ctx.govPct.p)} dos válidos em ${UF_NOMES[ctx.govPct.c.uf]}`} />
+          {turno === 1 && <Recorde rotulo="Deputado federal mais votado do Brasil" c={ctx.depF} cor="#2a78d6" sub={ctx.depF && <SeloResultado resultado={ctx.depF.resultado} />} />}
+          {turno === 1 && <Recorde rotulo="Deputado estadual/distrital mais votado" c={ctx.depE} cor="#6250d6" sub={ctx.depE && <SeloResultado resultado={ctx.depE.resultado} />} />}
+          {turno === 1 && <Recorde rotulo="Senador mais votado do Brasil" c={ctx.sen} cor="#1baf7a" sub={ctx.sen && <SeloResultado resultado={ctx.sen.resultado} />} />}
+          {turno === 1 && <Recorde rotulo="Maior % para senador" icon={TrendingUp} c={ctx.senPct?.c} cor="#e87ba4" sub={ctx.senPct && `${fmtPct1(ctx.senPct.p)} dos válidos em ${UF_NOMES[ctx.senPct.c.uf]} (2 votos por eleitor)`} />}
           <a href={rotas.uf(ctx.menorAbst.uf)} className="card p-4 flex items-center gap-4 hover:-translate-y-0.5 transition-transform">
             <span className="w-[72px] h-[72px] rounded-full grid place-items-center text-xl font-extrabold text-white shrink-0" style={{ background: '#1baf7a' }}>{ctx.menorAbst.uf}</span>
-            <span className="min-w-0"><span className="text-[11px] uppercase tracking-wide font-semibold flex items-center gap-1" style={{ color: '#1baf7a' }}><TrendingDown className="w-3.5 h-3.5" /> Menor abstenção</span><span className="block font-bold">{ctx.menorAbst.nome}</span><span className="block text-xl font-extrabold">{fmtPct1(ctx.abst(ctx.menorAbst))}</span></span>
+            <span className="min-w-0"><span className="text-[11px] uppercase tracking-wide font-semibold flex items-center gap-1" style={{ color: '#1baf7a' }}><TrendingDown className="w-3.5 h-3.5" /> Menor abstenção ({turno}ºT)</span><span className="block font-bold">{ctx.menorAbst.nome}</span><span className="block text-xl font-extrabold">{fmtPct1(ctx.abst(ctx.menorAbst))}</span></span>
           </a>
           <a href={rotas.uf(ctx.maiorAbst.uf)} className="card p-4 flex items-center gap-4 hover:-translate-y-0.5 transition-transform">
             <span className="w-[72px] h-[72px] rounded-full grid place-items-center text-xl font-extrabold text-white shrink-0" style={{ background: '#eb6834' }}>{ctx.maiorAbst.uf}</span>
-            <span className="min-w-0"><span className="text-[11px] uppercase tracking-wide font-semibold flex items-center gap-1" style={{ color: '#eb6834' }}><TrendingUp className="w-3.5 h-3.5" /> Maior abstenção</span><span className="block font-bold">{ctx.maiorAbst.nome}</span><span className="block text-xl font-extrabold">{fmtPct1(ctx.abst(ctx.maiorAbst))}</span></span>
+            <span className="min-w-0"><span className="text-[11px] uppercase tracking-wide font-semibold flex items-center gap-1" style={{ color: '#eb6834' }}><TrendingUp className="w-3.5 h-3.5" /> Maior abstenção ({turno}ºT)</span><span className="block font-bold">{ctx.maiorAbst.nome}</span><span className="block text-xl font-extrabold">{fmtPct1(ctx.abst(ctx.maiorAbst))}</span></span>
           </a>
         </div>
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Bancada titulo="Câmara dos Deputados" sub="Deputados federais eleitos por partido" lista={ctx.camara} vagas={513} />
+        <Bancada titulo="Câmara dos Deputados (eleita no 1ºT)" sub="Deputados federais eleitos por partido" lista={ctx.camara} vagas={513} />
         <div className="space-y-4">
-          <Bancada titulo="Senado · vagas de 2026" sub="Senadores eleitos por partido" lista={ctx.senado} vagas={54} />
+          <Bancada titulo="Senado · vagas de 2026 (eleitas no 1ºT)" sub="Senadores eleitos por partido" lista={ctx.senado} vagas={54} />
           <section className="card p-4 sm:p-5">
-            <h2 className="font-semibold flex items-center gap-2"><MapPin className="w-4 h-4" /> Governadores</h2>
+            <h2 className="font-semibold flex items-center gap-2"><MapPin className="w-4 h-4" /> Governadores dos 27 Estados</h2>
             <div className="grid grid-cols-2 gap-3 mt-3">
-              <div className="rounded-xl p-3" style={{ background: 'color-mix(in srgb, var(--ok) 12%, transparent)' }}><div className="text-3xl font-extrabold" style={{ color: 'var(--ok)' }}><Contador valor={ctx.govEleitos.length} /></div><div className="text-xs ink-2">eleitos no 1º turno</div></div>
-              <div className="rounded-xl p-3" style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}><div className="text-3xl font-extrabold" style={{ color: 'var(--accent)' }}><Contador valor={ctx.govT2.size} /></div><div className="text-xs ink-2">estados com 2º turno em 25/10</div></div>
+              <div className="rounded-xl p-3" style={{ background: 'color-mix(in srgb, var(--ok) 12%, transparent)' }}><div className="text-3xl font-extrabold" style={{ color: 'var(--ok)' }}><Contador valor={ctx.govEleitosT1.length} /></div><div className="text-xs ink-2">eleitos no 1º turno (04/10)</div></div>
+              <div className="rounded-xl p-3" style={{ background: 'color-mix(in srgb, var(--accent) 12%, transparent)' }}><div className="text-3xl font-extrabold" style={{ color: 'var(--accent)' }}><Contador valor={ctx.govT2.size} /></div><div className="text-xs ink-2">definidos no 2º turno (25/10)</div></div>
             </div>
-            <p className="text-xs muted mt-2">2º turno: {[...ctx.govT2].sort().join(', ') || '—'}</p>
+            <p className="text-xs muted mt-2">Estados com 2º turno para governador: {[...ctx.govT2].sort().join(', ') || '—'}</p>
           </section>
         </div>
       </section>
-      <Bancada titulo="Assembleias Legislativas e Câmara Legislativa (DF)" sub="Deputados estaduais e distritais eleitos por partido, somando os 27 estados" lista={ctx.assembleias} maxPartidos={8} />
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-bold flex items-center gap-2"><MapPin className="w-5 h-5" /> Estado por estado</h2>
+          <h2 className="text-lg font-bold flex items-center gap-2"><MapPin className="w-5 h-5" /> Estado por estado ({turno}º Turno)</h2>
           <Seg size="xs" value={ordemUf} onChange={setOrdemUf} options={[{ value: 'nome', label: 'A–Z' }, { value: 'eleitores', label: 'Mais eleitores' }]} />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-          {ufsOrdenadas.map(u => <CartaoEstado key={u.uf} u={u} porUf={ctx.porUf} />)}
+          {ufsOrdenadas.map(u => <CartaoEstado key={u.uf} u={u} porUf={ctx.porUf} porUfT1={ctx.porUfT1} turno={turno} presCand={ctx.pres} />)}
         </div>
       </section>
       <p className="text-xs muted">Fotos, votos e situação das candidaturas (eleito, 2º turno, suplente) conforme a divulgação oficial do TSE. Percentuais sobre os votos válidos do cargo no estado.</p>

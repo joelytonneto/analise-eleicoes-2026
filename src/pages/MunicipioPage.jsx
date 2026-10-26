@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { ExternalLink, X, Trophy } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ExternalLink, X, Trophy, DownloadCloud, Loader2 } from 'lucide-react';
 import { useAsync, Card, Loading, ErrorBox, Seg, Select } from '../components/ui';
 import { Indicadores, ComposicaoVotos, ResultadoCandidatos, CargoPicker, useCargo } from '../components/Resultado';
 import MapaResultado from '../components/MapaResultado';
@@ -11,8 +11,8 @@ import { loadBrasil, loadUf, loadMun, loadDep, loadPartidos, UF_NOMES, S, cargoN
 import { itensDeVetor, itensDeputadosMun, legendaDeputadosMun } from '../lib/resultados';
 import { opcoesMetrica, valorMetrica, vencedor } from '../lib/metricasMapa';
 import { fmt, fmtPct, pct, titulo, pad } from '../lib/format';
-import { rotas, setQuery } from '../lib/router';
-import { urlDivulgacao, urlPortalMunicipio } from '../lib/tse';
+import { rotas, setQuery, useTurno } from '../lib/router';
+import { urlDivulgacao, urlPortalMunicipio, baixarBoletim } from '../lib/tse';
 import { idMun, idZona, idLocal, idSecao } from '../lib/unidades';
 import { mapaCores } from '../lib/colors';
 
@@ -27,39 +27,87 @@ const TABS = [
 const pctVotos = (st, cargo, k) => pct(st[k], st[S.comp] * (+cargo === 5 ? 2 : 1));
 
 export function colunasMetricas(cargo, candRef, { candidatos = 3 } = {}) {
-  const val = r => validosSt(r.st[cargo]);
+  const val = r => validosSt(r.st?.[cargo]);
   return [
-    { key: 'apt', label: 'Aptos', value: r => r.st[cargo]?.[S.aptos], align: 'right', render: r => fmt(r.st[cargo]?.[S.aptos]) },
-    { key: 'comp', label: '% Comparec.', value: r => (r.st[cargo] ? pct(r.st[cargo][S.comp], r.st[cargo][S.aptos]) : null), align: 'right', render: r => fmtPct(r.st[cargo] && pct(r.st[cargo][S.comp], r.st[cargo][S.aptos])) },
+    { key: 'apt', label: 'Aptos', value: r => r.st?.[cargo]?.[S.aptos], align: 'right', render: r => (r.st?.[cargo] ? fmt(r.st[cargo][S.aptos]) : '—') },
+    { key: 'comp', label: '% Comparec.', value: r => (r.st?.[cargo] ? pct(r.st[cargo][S.comp], r.st[cargo][S.aptos]) : null), align: 'right', render: r => fmtPct(r.st?.[cargo] && pct(r.st[cargo][S.comp], r.st[cargo][S.aptos])) },
     ...(candRef || []).slice(0, candidatos).map((c, i) => ({
       key: `c${c.n}`, label: `${c.nome}`, title: `Votos e % dos válidos de ${c.nome}`, align: 'right',
       value: r => (r.v?.[cargo] ? pct(r.v[cargo][i] || 0, val(r)) : null),
       render: r => (r.v?.[cargo] ? <span title={`${fmt(r.v[cargo][i] || 0)} votos`}>{fmt(r.v[cargo][i] || 0)} <span className="muted text-xs">{fmtPct(pct(r.v[cargo][i] || 0, val(r)), 1)}</span></span> : '—')
     })),
-    { key: 'br', label: 'Brancos', value: r => r.st[cargo]?.[S.br], align: 'right', render: r => (r.st[cargo] ? <>{fmt(r.st[cargo][S.br])} <span className="muted text-xs">{fmtPct(pctVotos(r.st[cargo], cargo, S.br), 1)}</span></> : '—') },
-    { key: 'nu', label: 'Nulos', title: 'Inclui nulos técnicos (votos em números não reconhecidos pelo TSE)', value: r => (r.st[cargo] ? nulosSt(r.st[cargo]) : null), align: 'right', render: r => (r.st[cargo] ? <>{fmt(nulosSt(r.st[cargo]))} <span className="muted text-xs">{fmtPct(pct(nulosSt(r.st[cargo]), r.st[cargo][S.comp] * (+cargo === 5 ? 2 : 1)), 1)}</span></> : '—') }
+    { key: 'br', label: 'Brancos', value: r => r.st?.[cargo]?.[S.br], align: 'right', render: r => (r.st?.[cargo] ? <>{fmt(r.st[cargo][S.br])} <span className="muted text-xs">{fmtPct(pctVotos(r.st[cargo], cargo, S.br), 1)}</span></> : '—') },
+    { key: 'nu', label: 'Nulos', title: 'Inclui nulos técnicos (votos em números não reconhecidos pelo TSE)', value: r => (r.st?.[cargo] ? nulosSt(r.st[cargo]) : null), align: 'right', render: r => (r.st?.[cargo] ? <>{fmt(nulosSt(r.st[cargo]))} <span className="muted text-xs">{fmtPct(pct(nulosSt(r.st[cargo]), r.st[cargo][S.comp] * (+cargo === 5 ? 2 : 1)), 1)}</span></> : '—') }
   ];
 }
 
 export default function MunicipioPage({ uf, cd, query }) {
+  const [turno, setTurno] = useTurno();
   const [cargo, disp] = useCargo(query, uf);
-  const dep = cargo >= 6;
+  const dep = cargo >= 6 && turno === 1;
   const tab = query.tab || 'resultado';
   const zonaFiltro = query.zona ? +query.zona : null;
   const localFiltro = query.local || null; // "zona-numero"
   const { data, loading, error } = useAsync(
-    () => Promise.all([loadBrasil(), loadUf(uf), loadMun(uf, cd), dep ? loadDep(uf) : null, dep ? loadPartidos() : null]),
-    [uf, cd, dep]
+    () => Promise.all([loadBrasil(turno), loadUf(uf, turno), loadMun(uf, cd, turno), dep ? loadDep(uf) : null, dep ? loadPartidos(turno) : null]),
+    [uf, cd, dep, turno]
   );
   const [brasil, ud, mf, depData, partidos] = data || [];
+  const [buExtras, setBuExtras] = useState({});
+  const [baixandoBUs, setBaixandoBUs] = useState({ ativo: false, feitos: 0, total: 0 });
+
+  useEffect(() => {
+    setBuExtras({});
+    setBaixandoBUs({ ativo: false, feitos: 0, total: 0 });
+  }, [uf, cd, turno]);
 
   const base = useMemo(() => {
     if (!mf) return null;
     const m = ud.mun.find(x => x.cd === cd);
-    const secoes = secoesDoMunicipio(mf, UF_NOMES[uf]);
+    const secoesOrig = secoesDoMunicipio(mf, UF_NOMES[uf]);
+    const secoes = secoesOrig.map(s => {
+      const ex = buExtras[`${s.z}|${s.s}`];
+      return ex ? { ...s, st: ex.st, v: ex.v, rb: ex.rb, enc: ex.enc } : s;
+    });
     const candRef = dep ? null : cargo === 1 ? brasil.cand[1] : ud.cand[cargo];
     return { m, secoes, candRef };
-  }, [mf, ud, brasil, cd, uf, cargo, dep]);
+  }, [mf, ud, brasil, cd, uf, cargo, dep, buExtras]);
+
+  async function carregarBUsLote(listaSecoes) {
+    if (baixandoBUs.ativo || !mf) return;
+    const pendentes = listaSecoes.filter(s => !s.ag && !s.st).slice(0, 120);
+    if (!pendentes.length) return;
+    setBaixandoBUs({ ativo: true, feitos: 0, total: pendentes.length });
+    let feitos = 0;
+    const novos = {};
+    const ordens = mf.cand || { 1: [13, 22] };
+    let idx = 0;
+    await Promise.all(Array.from({ length: Math.min(8, pendentes.length) }, async () => {
+      while (idx < pendentes.length) {
+        const s = pendentes[idx++];
+        try {
+          const r = await baixarBoletim(uf, cd, s.z, s.s, { turno });
+          const st = {};
+          const v = {};
+          for (const [cg, resCg] of Object.entries(r.resumo || {})) {
+            if (!ordens[cg]) continue;
+            st[cg] = [resCg.aptos, resCg.comparecimento, resCg.aptos - resCg.comparecimento, resCg.nominais, resCg.brancos, resCg.nulos, resCg.legenda || 0, 0, 0, 0, 0];
+            v[cg] = ordens[cg].map(n => resCg.votos[n] || 0);
+          }
+          novos[`${s.z}|${s.s}`] = {
+            st,
+            v,
+            rb: r.hash ? `${r.hash.dr} ${r.hash.hr}` : null,
+            enc: r.bu?.dadosSecao?.dataHoraEncerramento || null
+          };
+        } catch { /* ignore individual section error */ }
+        feitos++;
+        setBaixandoBUs({ ativo: true, feitos, total: pendentes.length });
+      }
+    }));
+    setBuExtras(prev => ({ ...prev, ...novos }));
+    setBaixandoBUs({ ativo: false, feitos, total: pendentes.length });
+  }
 
   if (loading) return <Loading />;
   if (error) return <ErrorBox error={error} />;
@@ -70,22 +118,34 @@ export default function MunicipioPage({ uf, cd, query }) {
   const st = m.st[cargo];
   const filtradas = secoes.filter(s => (zonaFiltro == null || s.z === zonaFiltro) && (!localFiltro || `${s.z}-${s.local?.n}` === localFiltro));
   const localSel = localFiltro ? secoes.find(s => `${s.z}-${s.local?.n}` === localFiltro)?.local : null;
+  const faltamBUs = turno === 2 ? filtradas.filter(s => !s.ag && !s.st).length : 0;
 
   return (
     <div className="space-y-4">
       <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, { label: UF_NOMES[uf], href: rotas.uf(uf, { c: cargo }) }, { label: nomeMun }]} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">{nomeMun} <span className="muted font-normal">– {uf}</span></h1>
-          <p className="text-sm ink-2">
-            Código TSE {cd}{m.ibge ? ` · IBGE ${m.ibge}` : ''} · {m.zonas.length} zona(s): {m.zonas.slice(0, 6).map(z => pad(z)).join(', ')}{m.zonas.length > 6 ? ` e mais ${m.zonas.length - 6}` : ''} · {fmt(m.nLocais)} locais · {fmt(m.nSecoes)} seções com urna{m.nAgregadas ? ` (+${fmt(m.nAgregadas)} agregadas)` : ''}
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-xl sm:text-2xl font-semibold">{nomeMun} <span className="muted font-normal">– {uf} ({turno}º Turno)</span></h1>
+            <Seg
+              size="xs"
+              value={String(turno)}
+              onChange={v => setTurno(+v)}
+              options={[
+                { value: '2', label: '2º Turno' },
+                { value: '1', label: '1º Turno' }
+              ]}
+            />
+          </div>
+          <p className="text-sm ink-2 mt-0.5">
+            {turno}º turno · {turno === 1 ? '04/10/2026' : '25/10/2026'} · Código TSE {cd}{m.ibge ? ` · IBGE ${m.ibge}` : ''} · {m.zonas.length} zona(s): {m.zonas.slice(0, 6).map(z => pad(z)).join(', ')}{m.zonas.length > 6 ? ` e mais ${m.zonas.length - 6}` : ''} · {fmt(m.nLocais)} locais · {fmt(m.nSecoes)} seções com urna{m.nAgregadas ? ` (+${fmt(m.nAgregadas)} agregadas)` : ''}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 items-center min-w-0 max-w-full">
           <CargoPicker cargo={cargo} disponiveis={disp} />
           <BotaoComparar id={idMun(uf, cd)} rotulo={`${nomeMun} – ${uf}`} />
           <a className="btn" href={rotas.placar({ uf, m: cd, c: cargo, z: zonaFiltro ?? undefined, l: localFiltro ? localFiltro.split('-')[1] : undefined })} title="Ver este recorte no Placar, com fotos e cartões"><Trophy className="w-4 h-4" /> Ver no Placar</a>
-          <a className="btn" href={urlPortalMunicipio(uf, cd, cargo)} target="_blank" rel="noreferrer" title="Abrir este município no portal oficial de resultados do TSE">TSE <ExternalLink className="w-3.5 h-3.5" /></a>
+          <a className="btn" href={urlPortalMunicipio(uf, cd, cargo, turno)} target="_blank" rel="noreferrer" title="Abrir este município no portal oficial de resultados do TSE">TSE <ExternalLink className="w-3.5 h-3.5" /></a>
         </div>
       </div>
 
@@ -98,37 +158,56 @@ export default function MunicipioPage({ uf, cd, query }) {
         {localSel && (
           <span className="chip">{titulo(localSel.nome)} <button onClick={() => setQuery({ local: undefined })} aria-label="Remover filtro de local"><X className="w-3 h-3" /></button></span>
         )}
+        {turno === 2 && faltamBUs > 0 && (tab === 'secoes' || tab === 'locais' || tab === 'distribuicao' || localSel) && (
+          <button
+            className="btn !py-1 text-xs"
+            disabled={baixandoBUs.ativo}
+            onClick={() => carregarBUsLote(filtradas)}
+            title="Baixar Boletins de Urna originais do 2º Turno diretamente do servidor do TSE para preencher todas as seções visíveis"
+          >
+            {baixandoBUs.ativo ? (
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Baixando BUs do TSE ({baixandoBUs.feitos}/{baixandoBUs.total})…</>
+            ) : (
+              <><DownloadCloud className="w-3.5 h-3.5" /> Carregar BUs 2ºT ao vivo ({Math.min(120, faltamBUs)} seções)</>
+            )}
+          </button>
+        )}
       </div>
 
-      {!st && <ErrorBox>Não há votação de {cargoNome(cargo)} neste município.</ErrorBox>}
-      {st && tab === 'resultado' && <AbaResultado {...{ uf, cd, cargo, st, candRef, m, dep, depData, partidos, filtradas, zonaFiltro, localFiltro }} />}
-      {st && tab === 'zonas' && <AbaZonas {...{ uf, cd, cargo, candRef, secoes, nomeMun, dep }} />}
-      {st && tab === 'locais' && <AbaLocais {...{ uf, cd, cargo, candRef, secoes: zonaFiltro == null ? secoes : secoes.filter(s => s.z === zonaFiltro), nomeMun, dep }} />}
-      {st && tab === 'secoes' && <AbaSecoes {...{ uf, cd, cargo, candRef, secoes: filtradas, nomeMun, dep }} />}
-      {st && tab === 'distribuicao' && <AbaDistribuicao {...{ uf, cd, cargo, candRef, secoes: filtradas, dep }} />}
+      {!st && <ErrorBox>Não há votação de {cargoNome(cargo)} neste município no {turno}º Turno.</ErrorBox>}
+      {st && tab === 'resultado' && <AbaResultado {...{ uf, cd, cargo, st, candRef, m, mf, dep, depData, partidos, filtradas, zonaFiltro, localFiltro, turno }} />}
+      {st && tab === 'zonas' && <AbaZonas {...{ uf, cd, cargo, candRef, secoes, zonasTotais: mf.zonasTotais, nomeMun, dep }} />}
+      {st && tab === 'locais' && <AbaLocais {...{ uf, cd, cargo, candRef, secoes: zonaFiltro == null ? secoes : secoes.filter(s => s.z === zonaFiltro), nomeMun, dep, turno, onCarregarBUs: carregarBUsLote, baixandoBUs }} />}
+      {st && tab === 'secoes' && <AbaSecoes {...{ uf, cd, cargo, candRef, secoes: filtradas, nomeMun, dep, turno }} />}
+      {st && tab === 'distribuicao' && <AbaDistribuicao {...{ uf, cd, cargo, candRef, secoes: filtradas, dep, turno, onCarregarBUs: () => carregarBUsLote(filtradas), baixandoBUs }} />}
     </div>
   );
 }
 
-function AbaResultado({ uf, cd, cargo, st, candRef, m, dep, depData, partidos, filtradas, zonaFiltro, localFiltro }) {
+function AbaResultado({ uf, cd, cargo, st, candRef, m, mf, dep, depData, partidos, filtradas, zonaFiltro, localFiltro, turno }) {
   const filtrado = zonaFiltro != null || localFiltro;
   const agg = useMemo(() => {
     if (!filtrado) return null;
+    if (zonaFiltro != null && !localFiltro && mf?.zonasTotais?.[zonaFiltro]) {
+      const zt = mf.zonasTotais[zonaFiltro];
+      const nSecoes = filtradas.filter(s => !s.ag).length;
+      return { st: zt.st, v: zt.v, nSecoes };
+    }
     const [u] = agrupar(filtradas.map(s => ({ ...s, z: 0, local: { n: 0 } })), 'zona');
     return u;
-  }, [filtradas, filtrado]);
-  const stF = agg ? agg.st[cargo] : st;
+  }, [filtradas, filtrado, zonaFiltro, localFiltro, mf]);
+  const stF = agg?.st?.[cargo] ? agg.st[cargo] : st;
   let itens;
   if (dep) itens = filtrado ? null : itensDeputadosMun(depData, cargo, cd);
-  else itens = itensDeVetor(agg ? agg.v[cargo] : m.v[cargo], candRef);
+  else itens = itensDeVetor(agg?.v?.[cargo] ? agg.v[cargo] : m.v[cargo], candRef);
   const leg = dep && !filtrado ? legendaDeputadosMun(depData, cargo, cd) : [];
   return (
     <div className="space-y-4">
-      <Indicadores st={stF} cargo={cargo} extra={[filtrado ? `${fmt(agg?.nSecoes)} seções no filtro` : `${fmt(m.nSecoes)} seções`]} />
+      <Indicadores st={stF} cargo={cargo} extra={[filtrado ? `${fmt(agg?.nSecoes || filtradas.filter(s => !s.ag).length)} seções no filtro` : `${fmt(m.nSecoes)} seções`]} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card
-          title={`Resultado · ${cargoNome(cargo)}${filtrado ? ' (filtro aplicado)' : ''}`}
-          subtitle={<>Soma das seções do município · <a className="link" href={urlDivulgacao(uf, cd, cargo)} target="_blank" rel="noreferrer">JSON oficial do TSE para conferência</a></>}
+          title={`Resultado · ${cargoNome(cargo)} (${turno}º Turno)${filtrado ? ' (filtro aplicado)' : ''}`}
+          subtitle={<>Totalização oficial do TSE · <a className="link" href={urlDivulgacao(uf, cd, cargo, turno)} target="_blank" rel="noreferrer">JSON oficial do TSE para conferência</a></>}
         >
           {itens ? <ResultadoCandidatos itens={itens} st={stF} cargo={cargo} max={dep ? 10 : 13} uf={uf} /> : (
             <p className="text-sm muted">Para deputados, os votos por candidato estão disponíveis no total do município e em cada seção (via boletim de urna). Remova o filtro de zona/local para ver o total.</p>
@@ -150,8 +229,8 @@ function AbaResultado({ uf, cd, cargo, st, candRef, m, dep, depData, partidos, f
   );
 }
 
-function AbaZonas({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
-  const zonas = useMemo(() => agrupar(secoes, 'zona'), [secoes]);
+function AbaZonas({ uf, cd, cargo, candRef, secoes, zonasTotais, nomeMun, dep }) {
+  const zonas = useMemo(() => agrupar(secoes, 'zona', zonasTotais), [secoes, zonasTotais]);
   const colunas = [
     { key: 'z', label: 'Zona', value: r => r.z, render: r => <a className="link font-medium" href={rotas.mun(uf, cd, { c: cargo, tab: 'secoes', zona: r.z })} onClick={e => e.stopPropagation()}>Zona {pad(r.z)}</a> },
     { key: 'loc', label: 'Locais', value: r => r.locais.size, align: 'right' },
@@ -160,16 +239,16 @@ function AbaZonas({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
     { key: 'cmp', label: '', value: () => null, render: r => <BotaoComparar compacto id={idZona(uf, cd, r.z)} rotulo={`Zona ${pad(r.z)} · ${nomeMun}`} /> }
   ];
   return (
-    <Card title="Zonas eleitorais" subtitle="Totais por zona dentro do município">
+    <Card title="Zonas eleitorais" subtitle="Totais oficiais por zona eleitoral dentro do município">
       <DataTable linhas={zonas} colunas={colunas} rowKey={r => r.z} ordemInicial={{ key: 'z', dir: 'asc' }} nomeArquivo={`${cd}-zonas`} onRowClick={r => setQuery({ tab: 'secoes', zona: r.z })} />
     </Card>
   );
 }
 
-function AbaLocais({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
-  const locais = useMemo(() => agrupar(secoes, 'local'), [secoes]);
+function AbaLocais({ uf, cd, cargo, candRef, secoes, nomeMun, dep, turno }) {
+  const locais = useMemo(() => agrupar(secoes, 'local', turno === 2 ? {} : null), [secoes, turno]);
   const unidades = useMemo(() => locais.map(l => ({
-    key: `${l.z}-${l.local.n}`, nome: titulo(l.local.nome), st: l.st[cargo], v: l.v[cargo], lat: l.local.lat, lng: l.local.lng,
+    key: `${l.z}-${l.local.n}`, nome: titulo(l.local.nome), st: l.st[cargo] || l.secoes.find(s => s.t1?.st?.[cargo])?.t1?.st?.[cargo], v: l.v[cargo], lat: l.local.lat, lng: l.local.lng,
     extraTooltip: `Zona ${pad(l.z)} · ${l.nSecoes} seção(ões)`,
     onClick: () => setQuery({ tab: 'secoes', zona: l.z, local: `${l.z}-${l.local.n}` })
   })), [locais, cargo]);
@@ -184,6 +263,7 @@ function AbaLocais({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
     { key: 'bairro', label: 'Bairro', value: r => r.local.bairro && titulo(r.local.bairro), ocultarMobile: true },
     { key: 'z', label: 'Zona', value: r => r.z, align: 'right', render: r => pad(r.z) },
     { key: 'ns', label: 'Seções', value: r => r.nSecoes, align: 'right' },
+    { key: 'el', label: 'Eleitorado', value: r => r.eleitorado, align: 'right', render: r => fmt(r.eleitorado) },
     ...colunasMetricas(cargo, dep ? null : candRef, { candidatos: 3 }),
     { key: 'cmp', label: '', value: () => null, render: r => <BotaoComparar compacto id={idLocal(uf, cd, r.z, r.local.n)} rotulo={`${titulo(r.local.nome)} (Z${pad(r.z)})`} /> }
   ];
@@ -191,35 +271,39 @@ function AbaLocais({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
     <div className="space-y-4">
       {!dep && unidades.some(u => u.lat != null) && (
         <Card title="Mapa dos locais de votação" subtitle="Coordenadas publicadas pelo TSE; clique num local para ver as seções">
-          <MapaResultado unidades={unidades} candRef={candRef} cargo={cargo} pontos height={460} raio={u => 4 + Math.min(10, Math.sqrt(u.st?.[S.aptos] || 0) / 8)} />
+          <MapaResultado unidades={unidades} candRef={candRef} cargo={cargo} pontos height={460} raio={u => 4 + Math.min(10, Math.sqrt(u.st?.[S.aptos] || 200) / 8)} />
         </Card>
       )}
-      <Card title="Locais de votação" subtitle="Nome e endereço conforme cadastro do TSE (eleitorado_local_votacao_2026)">
-        <DataTable linhas={locais} colunas={colunas} rowKey={r => `${r.z}-${r.local.n}`} ordemInicial={{ key: 'apt', dir: 'desc' }} nomeArquivo={`${cd}-locais`} onRowClick={r => setQuery({ tab: 'secoes', zona: r.z, local: `${r.z}-${r.local.n}` })} />
+      <Card title="Locais de votação" subtitle={turno === 2 ? 'Clique num local para abrir suas seções ou use "Carregar BUs 2ºT ao vivo" acima para somar os BUs das urnas da escola' : 'Nome e endereço conforme cadastro do TSE (eleitorado_local_votacao_2026)'}>
+        <DataTable linhas={locais} colunas={colunas} rowKey={r => `${r.z}-${r.local.n}`} ordemInicial={{ key: 'el', dir: 'desc' }} nomeArquivo={`${cd}-locais`} onRowClick={r => setQuery({ tab: 'secoes', zona: r.z, local: `${r.z}-${r.local.n}` })} />
       </Card>
     </div>
   );
 }
 
-function AbaSecoes({ uf, cd, cargo, candRef, secoes, nomeMun, dep }) {
+function AbaSecoes({ uf, cd, cargo, candRef, secoes, nomeMun, dep, turno }) {
   const colunas = [
     { key: 'z', label: 'Zona', value: r => r.z, align: 'right', render: r => pad(r.z), ocultarMobile: true },
     { key: 's', label: 'Seção', value: r => r.s, align: 'right', render: r => <a className="link font-semibold num" href={rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo })} onClick={e => e.stopPropagation()}>{pad(r.s)}</a>, ocultarMobile: true },
     { key: 'loc', label: 'Local', value: r => r.local?.nome, render: r => <span className="truncate inline-block max-w-[260px] align-bottom" title={r.local?.nome}>{titulo(r.local?.nome || '')}</span>, ocultarMobile: true },
     { key: 'situ', label: 'Situação', value: r => (r.ag ? `Agregada à ${pad(r.p)}` : r.anulada ? 'Anulada' : r.naoInstalada ? 'Não instalada' : r.agr ? `Principal (+${r.agr.length})` : 'Normal'),
       render: r => (r.ag ? <span className="chip">Agregada → {pad(r.p)}</span> : r.anulada ? <span className="chip" style={{ color: 'var(--bad)' }}>Anulada</span> : r.agr ? <span className="chip" title={`Agrega: ${r.agr.map(x => pad(x)).join(', ')}`}>+{r.agr.length} agregada(s)</span> : '') },
-    ...colunasMetricas(cargo, dep ? null : candRef, { candidatos: 3 }).map(c => ({ ...c, value: r => (r.st ? c.value(r) : null), render: r => (r.st ? (c.render ? c.render(r) : c.value(r)) : '—') })),
+    ...colunasMetricas(cargo, dep ? null : candRef, { candidatos: 3 }).map(c => ({
+      ...c,
+      value: r => (r.st ? c.value(r) : c.key === 'apt' ? r.el : null),
+      render: r => (r.st ? (c.render ? c.render(r) : c.value(r)) : c.key === 'apt' ? fmt(r.el) : <span className="text-xs muted">Abrir BU →</span>)
+    })),
     { key: 'urna', label: 'Urna', value: r => r.m },
-    { key: 'cmp', label: '', value: () => null, render: r => (r.st ? <BotaoComparar compacto id={idSecao(uf, cd, r.z, r.s)} rotulo={`Seção ${pad(r.s)} Z${pad(r.z)} · ${nomeMun}`} /> : null) }
+    { key: 'cmp', label: '', value: () => null, render: r => (!r.ag ? <BotaoComparar compacto id={idSecao(uf, cd, r.z, r.s)} rotulo={`Seção ${pad(r.s)} Z${pad(r.z)} · ${nomeMun}`} /> : null) }
   ];
   return (
-    <Card title="Seções eleitorais (urnas)" subtitle="Clique numa seção para ver o boletim de urna e conferir ao vivo com o TSE. Seções agregadas votam na urna da seção principal.">
-      <DataTable linhas={secoes} colunas={colunas} rowKey={r => r.id} tituloMobile={r => <span><span className="font-semibold">Seção {pad(r.s)}</span> <span className="muted">· Zona {pad(r.z)}</span><span className="block text-xs muted font-normal">{titulo(r.local?.nome || '')}</span></span>} ordemInicial={{ key: 's', dir: 'asc' }} porPagina={100} nomeArquivo={`${cd}-secoes`} onRowClick={r => { window.location.hash = rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo }); }} />
+    <Card title={`Seções eleitorais (urnas) · ${turno}º Turno`} subtitle="Clique numa seção para ver e decodificar o Boletim de Urna oficial ao vivo com o TSE (e o confronto 1º × 2º Turno da urna).">
+      <DataTable linhas={secoes} colunas={colunas} rowKey={r => r.id} tituloMobile={r => <span><span className="font-semibold">Seção {pad(r.s)}</span> <span className="muted">· Zona {pad(r.z)}</span><span className="block text-xs muted font-normal">{titulo(r.local?.nome || '')}</span></span>} ordemInicial={{ key: 's', dir: 'asc' }} porPagina={100} nomeArquivo={`${cd}-${turno}t-secoes`} onRowClick={r => { window.location.hash = rotas.secao(uf, cd, r.z, r.ag && r.p ? r.p : r.s, { c: cargo }); }} />
     </Card>
   );
 }
 
-function AbaDistribuicao({ uf, cd, cargo, candRef, secoes, dep }) {
+function AbaDistribuicao({ uf, cd, cargo, candRef, secoes, dep, turno, onCarregarBUs, baixandoBUs }) {
   const ops = useMemo(() => opcoesMetrica(dep ? [] : candRef, cargo).filter(o => o.value !== 'vencedor'), [candRef, cargo, dep]);
   const [mx, setMx] = useState('comparecimento');
   const [my, setMy] = useState(ops.find(o => o.value.startsWith('cand:'))?.value || 'brancos');
@@ -231,12 +315,25 @@ function AbaDistribuicao({ uf, cd, cargo, candRef, secoes, dep }) {
     const lider = !dep && s.v?.[cargo] ? vencedor(s.v[cargo], candRef) : null;
     return { x: val(mx, s), y: val(my, s), label: `Seção ${pad(s.s)} · Zona ${pad(s.z)} · ${titulo(s.local?.nome || '')}`, cor: lider ? cores.get(+lider.n) : undefined, onClick: () => { window.location.hash = rotas.secao(uf, cd, s.z, s.s, { c: cargo }); } };
   });
-  // seções atípicas: |z| > 3 na métrica Y
   const ys = pontos.map(p => p.y).filter(Number.isFinite);
   const media = ys.reduce((a, b) => a + b, 0) / (ys.length || 1);
   const dp = Math.sqrt(ys.reduce((a, b) => a + (b - media) ** 2, 0) / (ys.length || 1));
   const atipicas = comVoto.map((s, i) => ({ s, y: pontos[i].y, z: dp && Number.isFinite(pontos[i].y) ? (pontos[i].y - media) / dp : 0 })).filter(x => Math.abs(x.z) > 3).sort((a, b) => Math.abs(b.z) - Math.abs(a.z));
   const f1 = v => `${v.toFixed(1).replace('.', ',')}`;
+
+  if (turno === 2 && comVoto.length === 0) {
+    return (
+      <Card title="Distribuição por seção (2º Turno)">
+        <div className="space-y-3 text-sm">
+          <p className="ink-2">Para gerar o gráfico de dispersão e histograma das urnas deste recorte no 2º Turno, carregue os Boletins de Urna originais direto do TSE:</p>
+          <button className="btn btn-primary" disabled={baixandoBUs.ativo} onClick={onCarregarBUs}>
+            {baixandoBUs.ativo ? <><Loader2 className="w-4 h-4 animate-spin" /> Baixando BUs ({baixandoBUs.feitos}/{baixandoBUs.total})…</> : <><DownloadCloud className="w-4 h-4" /> Carregar BUs deste recorte agora</>}
+          </button>
+        </div>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2 items-center text-sm">
@@ -244,7 +341,7 @@ function AbaDistribuicao({ uf, cd, cargo, candRef, secoes, dep }) {
         <Select value={mx} onChange={setMx} className="!py-1 text-xs">{ops.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>
         <span className="ink-2">Eixo Y</span>
         <Select value={my} onChange={setMy} className="!py-1 text-xs">{ops.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>
-        <span className="muted text-xs">{fmt(comVoto.length)} seções</span>
+        <span className="muted text-xs">{fmt(comVoto.length)} seções carregadas</span>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card title={`Distribuição: ${label(mx)}`} subtitle="Cada unidade é uma seção (urna)"><Histogram values={pontos.map(p => p.x)} format={f1} xLabel={label(mx)} /></Card>

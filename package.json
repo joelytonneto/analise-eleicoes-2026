@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "dados:indices": "node scripts/data/indices-busca.mjs"
+    "dados:indices": "node scripts/data/indices-busca.mjs",
+    "dados:t2": "node scripts/data/build-t2.mjs"
   },
   "keywords": [],
   "author": "",

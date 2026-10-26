@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Trophy, Vote, Medal, MapPin, Percent } from 'lucide-react';
-import { useAsync, Card, Loading, ErrorBox } from '../components/ui';
+import { useAsync, Card, Loading, ErrorBox, Seg } from '../components/ui';
 import { FotoCandidato, Contador, CartaoNumero, BarraGrossa } from '../components/Vitrine';
 import { carregarCandidatosPorChave, chaveCand } from '../lib/busca';
 import MapaResultado from '../components/MapaResultado';
@@ -8,32 +8,43 @@ import DataTable from '../components/DataTable';
 import Trilha from '../components/Trilha';
 import { loadBrasil, loadUf, loadDep, loadGeoUf, loadGeoBrasil, UF_NOMES, IBGE_UF, cargoNome, validosSt } from '../lib/data';
 import { fmt, fmtPct, pct, titulo } from '../lib/format';
-import { rotas } from '../lib/router';
+import { rotas, useTurno } from '../lib/router';
 
 const somenteCandidato = o => o.value.startsWith('cand:');
 
-/**
- * Página de uma candidatura: total oficial, situação (eleito, 2º turno…) e a distribuição dos votos
- * por município (ou por UF, para Presidente), com mapa e tabela.
- */
 export default function CandidatoPage({ uf, cargo, n }) {
+  const [turno, setTurno] = useTurno();
   const pres = cargo === 1;
   const dep = cargo >= 6;
-  const { data, loading, error } = useAsync(() => Promise.all([
-    loadBrasil(),
-    pres ? null : loadUf(uf),
-    dep ? loadDep(uf) : null,
-    pres ? loadGeoBrasil() : uf !== 'ZZ' ? loadGeoUf(uf).catch(() => null) : null,
-    carregarCandidatosPorChave().catch(() => null)
-  ]), [uf, cargo, n]);
+  const { data, loading, error } = useAsync(async () => {
+    const tEfetivo = dep || cargo === 5 ? 1 : turno;
+    let [brasil, ud, dd, geo, porChave] = await Promise.all([
+      loadBrasil(tEfetivo),
+      pres ? null : loadUf(uf, tEfetivo),
+      dep ? loadDep(uf) : null,
+      pres ? loadGeoBrasil() : uf !== 'ZZ' ? loadGeoUf(uf).catch(() => null) : null,
+      carregarCandidatosPorChave(tEfetivo).catch(() => null)
+    ]);
+    const lista = pres ? brasil.cand[1] : dep ? dd?.cand?.[cargo] : ud?.cand?.[cargo];
+    if (tEfetivo === 2 && !(lista || []).some(c => +c.n === n)) {
+      // Candidato que disputou apenas o 1º Turno -> carrega dados do 1º Turno
+      [brasil, ud, porChave] = await Promise.all([
+        loadBrasil(1),
+        pres ? null : loadUf(uf, 1),
+        carregarCandidatosPorChave(1).catch(() => null)
+      ]);
+      return [brasil, ud, dd, geo, porChave, 1];
+    }
+    return [brasil, ud, dd, geo, porChave, tEfetivo];
+  }, [uf, cargo, n, turno]);
 
   const ctx = useMemo(() => {
     if (!data) return null;
-    const [brasil, ud, dd, geo, porChave] = data;
+    const [brasil, ud, dd, geo, porChave, turnoCand] = data;
     const lista = pres ? brasil.cand[1] : dep ? dd?.cand?.[cargo] : ud?.cand?.[cargo];
     const idx = (lista || []).findIndex(c => +c.n === n);
     if (idx < 0) return { naoEncontrado: true };
-    const cand = { ...lista[idx], sq: porChave?.get(chaveCand(cargo, uf, n))?.sq };
+    const cand = { ...lista[idx], sq: lista[idx].sq || porChave?.get(chaveCand(cargo, uf, n))?.sq };
     const posicao = [...lista].sort((a, b) => (b.votos || 0) - (a.votos || 0)).findIndex(c => +c.n === n) + 1;
     let linhas;
     if (pres) {
@@ -51,7 +62,7 @@ export default function CandidatoPage({ uf, cargo, n }) {
     const stTotal = pres ? brasil.total.st[1] : brasil.ufs.find(u => u.uf === uf)?.st[cargo];
     const total = linhas.reduce((a, r) => a + r.votos, 0);
     for (const r of linhas) { r.pValidos = pct(r.votos, validosSt(r.st)); r.pDoTotal = pct(r.votos, total); }
-    return { cand, posicao, nCands: lista.length, linhas, stTotal, total, geo, brasil };
+    return { cand, posicao, nCands: lista.length, linhas, stTotal, total, geo, brasil, turnoCand };
   }, [data, pres, dep, cargo, uf, n]);
 
   const unidades = useMemo(() => (ctx?.linhas || []).map(r => ({
@@ -63,7 +74,7 @@ export default function CandidatoPage({ uf, cargo, n }) {
   if (error) return <ErrorBox error={error} />;
   if (!ctx || ctx.naoEncontrado) return <ErrorBox>Candidatura nº {n} não encontrada para {cargoNome(cargo)}{pres ? '' : ` em ${UF_NOMES[uf] || uf}`}.</ErrorBox>;
 
-  const { cand, linhas, stTotal } = ctx;
+  const { cand, linhas, stTotal, turnoCand } = ctx;
   const escopo = pres ? 'Brasil' : UF_NOMES[uf];
   const unidade = pres ? 'UF' : 'Município';
   const unidadeMin = pres ? 'UF' : 'município';
@@ -80,13 +91,26 @@ export default function CandidatoPage({ uf, cargo, n }) {
 
   return (
     <div className="space-y-4">
-      <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, ...(pres ? [] : [{ label: UF_NOMES[uf], href: rotas.uf(uf, { c: cargo }) }]), { label: cand.nome }]} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Trilha itens={[{ label: 'Brasil', href: rotas.brasil() }, ...(pres ? [] : [{ label: UF_NOMES[uf], href: rotas.uf(uf, { c: cargo }) }]), { label: cand.nome }]} />
+        {(cargo === 1 || cargo === 3) && (
+          <Seg
+            size="xs"
+            value={String(turnoCand)}
+            onChange={v => setTurno(+v)}
+            options={[
+              { value: '2', label: '2º Turno · 25/10' },
+              { value: '1', label: '1º Turno · 04/10' }
+            ]}
+          />
+        )}
+      </div>
       <div className="rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #184f95, #2a78d6 55%, #6250d6)' }}>
         <div className="absolute -right-10 -top-10 w-56 h-56 rounded-full opacity-10" style={{ background: '#fff' }} />
         <div className="relative flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
           <FotoCandidato cargo={cargo} uf={pres ? 'BR' : uf} sq={cand.sq} nome={cand.nome} cor="rgba(255,255,255,.85)" size={112} className="self-center sm:self-auto" />
           <div className="min-w-0 flex-1 text-center sm:text-left">
-            <div className="text-xs uppercase tracking-widest opacity-80">{cargoNome(cargo)} · {escopo}</div>
+            <div className="text-xs uppercase tracking-widest opacity-80">{cargoNome(cargo)} · {escopo} · {turnoCand}º Turno</div>
             <h1 className="text-2xl sm:text-4xl font-extrabold mt-1 break-words">{cand.nome}</h1>
             <p className="text-sm opacity-90 mt-0.5">{cand.partido} · nº {cand.n}</p>
             <p className="text-xs opacity-80">{cand.nomeCompleto}{cand.coligacao && cand.coligacao !== 'PARTIDO ISOLADO' ? ` · ${cand.coligacao}` : ''}</p>
@@ -94,7 +118,7 @@ export default function CandidatoPage({ uf, cargo, n }) {
           </div>
           <div className="text-center sm:text-right shrink-0">
             <div className="text-3xl sm:text-5xl font-extrabold tracking-tight"><Contador valor={cand.votos} /></div>
-            <div className="text-sm opacity-90">votos · {fmtPct(pct(cand.votos, validosSt(stTotal)), 1)} dos válidos · {ctx.posicao}º lugar</div>
+            <div className="text-sm opacity-90">votos no {turnoCand}ºT · {fmtPct(pct(cand.votos, validosSt(stTotal)), 1)} dos válidos · {ctx.posicao}º lugar</div>
             <div className="flex flex-wrap gap-2 mt-3 justify-center sm:justify-end">
               <a className="btn !bg-white/15 !text-white !shadow-none hover:!bg-white/25" href={pres ? rotas.placar({ c: 1 }) : rotas.placar({ uf, c: cargo })}><Trophy className="w-4 h-4" /> Placar do cargo</a>
               <a className="btn !bg-white/15 !text-white !shadow-none hover:!bg-white/25" href={pres ? rotas.brasil() : rotas.uf(uf, { c: cargo })}>Todos os candidatos</a>
@@ -103,12 +127,12 @@ export default function CandidatoPage({ uf, cargo, n }) {
         </div>
       </div>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <CartaoNumero icon={Vote} rotulo="Votos" valor={cand.votos} sub={`${fmtPct(pct(cand.votos, validosSt(stTotal)))} dos válidos`} cor="#2a78d6" />
+        <CartaoNumero icon={Vote} rotulo={`Votos (${turnoCand}ºT)`} valor={cand.votos} sub={`${fmtPct(pct(cand.votos, validosSt(stTotal)))} dos válidos`} cor="#2a78d6" />
         <CartaoNumero icon={Medal} rotulo="Posição" valor={ctx.posicao} formato={v => `${v}º`} sub={`de ${ctx.nCands} candidaturas`} cor="#6250d6" />
         <CartaoNumero icon={MapPin} rotulo="Mais votos em" valor={melhor?.votos || 0} sub={melhor?.votos ? melhor.nome : ''} cor="#1baf7a" />
         <CartaoNumero icon={Percent} rotulo="Maior % dos válidos" valor={melhorPct?.pValidos ?? 0} formato={v => (melhorPct ? fmtPct(v) : '—')} sub={melhorPct?.nome} cor="#eb6834" />
       </div>
-      <Card title={`Onde teve mais votos`} subtitle={`Os 10 ${pres ? 'estados' : 'municípios'} com mais votos · toque para abrir o placar do lugar`}>
+      <Card title={`Onde teve mais votos (${turnoCand}º Turno)`} subtitle={`Os 10 ${pres ? 'estados' : 'municípios'} com mais votos · toque para abrir o placar do lugar`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3">
           {[...linhas].filter(r => r.votos > 0).sort((a, b) => b.votos - a.votos).slice(0, 10).map((r, i, arr) => (
             <a key={r.key} href={r.placar} className="flex items-center gap-3 min-w-0 group">
@@ -128,8 +152,8 @@ export default function CandidatoPage({ uf, cargo, n }) {
         <p className="text-xs muted">Soma por {unidadeMin}: {fmt(ctx.total)} votos (o total oficial considera também seções sem {unidadeMin} identificado).</p>
       )}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
-        <Card title={`Votação por ${unidadeMin}`} subtitle={`Teve votos em ${fmt(comVoto)} de ${fmt(linhas.length)} ${pres ? 'UFs (incl. exterior)' : 'municípios'}`} className="lg:col-span-2">
-          <DataTable linhas={linhas} colunas={colunas} rowKey={r => r.key} ordemInicial={{ key: 'votos', dir: 'desc' }} porPagina={25} nomeArquivo={`${cand.nome}-${cargoNome(cargo)}-por-${unidadeMin}`} onRowClick={r => { window.location.hash = r.href; }} />
+        <Card title={`Votação por ${unidadeMin} (${turnoCand}ºT)`} subtitle={`Teve votos em ${fmt(comVoto)} de ${fmt(linhas.length)} ${pres ? 'UFs (incl. exterior)' : 'municípios'}`} className="lg:col-span-2">
+          <DataTable linhas={linhas} colunas={colunas} rowKey={r => r.key} ordemInicial={{ key: 'votos', dir: 'desc' }} porPagina={25} nomeArquivo={`${cand.nome}-${turnoCand}t-${cargoNome(cargo)}-por-${unidadeMin}`} onRowClick={r => { window.location.hash = r.href; }} />
         </Card>
         <Card title="Mapa" subtitle="% dos votos válidos em cada unidade · clique para detalhar" className="lg:col-span-3">
           {ctx.geo
